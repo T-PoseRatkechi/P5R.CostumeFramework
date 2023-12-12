@@ -1,7 +1,6 @@
 ﻿using P5R.CostumeFramework.Configuration;
 using P5R.CostumeFramework.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
-using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 
 namespace P5R.CostumeFramework;
@@ -26,8 +25,10 @@ public class Mod : ModBase
         this.config = context.Configuration;
         this.modConfig = context.ModConfig;
 
-        this.modLoader.GetController<IStartupScanner>().TryGetTarget(out var scanner);
-        this.costumes = new(this.hooks, scanner!);
+        Log.Logger = this.logger;
+        Log.LogLevel = this.config.LogLevel;
+
+        this.costumes = new(this.modLoader, this.hooks);
     }
 
     #region Standard Overrides

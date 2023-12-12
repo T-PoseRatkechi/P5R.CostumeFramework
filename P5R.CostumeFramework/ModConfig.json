@@ -1,0 +1,21 @@
+{
+  "ModId": "P5R.CostumeFramework",
+  "ModName": "Costume Framework",
+  "ModAuthor": "T-Pose Ratkechi",
+  "ModVersion": "1.0.0",
+  "ModDescription": "",
+  "ModDll": "P5R.CostumeFramework.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/P5R.CostumeFramework.dll",
+  "ModR2RManagedDll64": "x64/P5R.CostumeFramework.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "P5R.CostumeFramework.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [ "reloaded.sharedlib.hooks" ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [],
+  "ProjectUrl": ""
+}

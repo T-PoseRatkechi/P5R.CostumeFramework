@@ -2,7 +2,7 @@
 
 internal enum Character
 {
-    Ren = 1,
+    Joker = 1,
     Ryuji,
     Mona,
     Ann,

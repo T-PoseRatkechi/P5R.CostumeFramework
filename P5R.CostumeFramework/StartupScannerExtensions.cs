@@ -17,7 +17,7 @@ internal static class StartupScannerExtensions
         {
             if (!result.Found)
             {
-                //Log.Error($"Failed to find pattern for {name}. Pattern: {pattern}");
+                Log.Error($"Failed to find pattern for {name}. Pattern: {pattern}");
                 return;
             }
 
@@ -38,12 +38,12 @@ internal static class StartupScannerExtensions
         {
             if (!result.Found)
             {
-                //Log.Error($"Failed to find pattern for {name}. Pattern: {pattern}");
+                Log.Error($"Failed to find pattern for {name}. Pattern: {pattern}");
                 return;
             }
 
             var address = Utilities.BaseAddress + result.Offset;
-            //Log.Information($"{name} found at: {address:X}");
+            Log.Information($"{name} found at: {address:X}");
             callback(address);
         });
     }

@@ -1,79 +1,48 @@
 ﻿using P5R.CostumeFramework.Configuration;
 using P5R.CostumeFramework.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
+using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 
-namespace P5R.CostumeFramework
+namespace P5R.CostumeFramework;
+
+public class Mod : ModBase
 {
-    /// <summary>
-    /// Your mod logic goes here.
-    /// </summary>
-    public class Mod : ModBase // <= Do not Remove.
+    private readonly IModLoader modLoader;
+    private readonly IReloadedHooks hooks;
+    private readonly ILogger logger;
+    private readonly IMod owner;
+    private Config config;
+    private readonly IModConfig modConfig;
+
+    private readonly CostumeService costumes;
+
+    public Mod(ModContext context)
     {
-        /// <summary>
-        /// Provides access to the mod loader API.
-        /// </summary>
-        private readonly IModLoader _modLoader;
+        this.modLoader = context.ModLoader;
+        this.hooks = context.Hooks!;
+        this.logger = context.Logger;
+        this.owner = context.Owner;
+        this.config = context.Configuration;
+        this.modConfig = context.ModConfig;
 
-        /// <summary>
-        /// Provides access to the Reloaded.Hooks API.
-        /// </summary>
-        /// <remarks>This is null if you remove dependency on Reloaded.SharedLib.Hooks in your mod.</remarks>
-        private readonly IReloadedHooks? _hooks;
-
-        /// <summary>
-        /// Provides access to the Reloaded logger.
-        /// </summary>
-        private readonly ILogger _logger;
-
-        /// <summary>
-        /// Entry point into the mod, instance that created this class.
-        /// </summary>
-        private readonly IMod _owner;
-
-        /// <summary>
-        /// Provides access to this mod's configuration.
-        /// </summary>
-        private Config _configuration;
-
-        /// <summary>
-        /// The configuration of the currently executing mod.
-        /// </summary>
-        private readonly IModConfig _modConfig;
-
-        public Mod(ModContext context)
-        {
-            _modLoader = context.ModLoader;
-            _hooks = context.Hooks;
-            _logger = context.Logger;
-            _owner = context.Owner;
-            _configuration = context.Configuration;
-            _modConfig = context.ModConfig;
-
-
-            // For more information about this template, please see
-            // https://reloaded-project.github.io/Reloaded-II/ModTemplate/
-
-            // If you want to implement e.g. unload support in your mod,
-            // and some other neat features, override the methods in ModBase.
-
-            // TODO: Implement some mod logic
-        }
-
-        #region Standard Overrides
-        public override void ConfigurationUpdated(Config configuration)
-        {
-            // Apply settings from configuration.
-            // ... your code here.
-            _configuration = configuration;
-            _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
-        }
-        #endregion
-
-        #region For Exports, Serialization etc.
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public Mod() { }
-#pragma warning restore CS8618
-        #endregion
+        this.modLoader.GetController<IStartupScanner>().TryGetTarget(out var scanner);
+        this.costumes = new(this.hooks, scanner!);
     }
+
+    #region Standard Overrides
+    public override void ConfigurationUpdated(Config configuration)
+    {
+        // Apply settings from configuration.
+        // ... your code here.
+        this.config = configuration;
+        this.logger.WriteLine($"[{this.modConfig.ModId}] Config Updated: Applying");
+    }
+    #endregion
+
+    #region For Exports, Serialization etc.
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    public Mod() { }
+#pragma warning restore CS8618
+    #endregion
 }

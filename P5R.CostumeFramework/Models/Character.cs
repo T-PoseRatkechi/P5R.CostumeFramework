@@ -9,5 +9,7 @@ internal enum Character
     Yusuke,
     Makoto,
     Haru,
-    Futaba
+    Futaba,
+    Akechi,
+    Kasumi,
 }

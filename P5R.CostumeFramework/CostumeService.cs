@@ -101,6 +101,12 @@ internal unsafe class CostumeService
 
             if (character == Character.Joker)
             {
+                if (this.currentMusicFile != null)
+                {
+                    this.bgme.RemovePath(this.currentMusicFile);
+                    this.currentMusicFile = null;
+                }
+
                 var costumeMusicFile = $"{replacementCostume.ReplacementFilePath}.pme";
                 if (File.Exists(costumeMusicFile))
                 {
@@ -123,6 +129,7 @@ internal unsafe class CostumeService
             if (character == Character.Joker && this.currentMusicFile != null)
             {
                 this.bgme.RemovePath(this.currentMusicFile);
+                this.currentMusicFile = null;
             }
         }
 

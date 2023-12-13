@@ -24,19 +24,19 @@ internal class CostumeManager
         this.modLoader.ModLoading += this.OnModLoading;
     }
 
-    public bool TryGetCostumeBind(Character character, Costume costume, out string? replacementBindPath)
+    public bool TryGetReplacementCostume(Character character, Costume costume, out ReplacementCostume? replacementCostume)
     {
-        replacementBindPath = null;
+        replacementCostume = null;
         if (!this.characters.ContainsKey(character))
         {
             return false;
         }
 
-        if (this.characters[character].Costumes.FirstOrDefault(x => x.OriginalCostume == costume) is ReplacementCostume replacementCostume)
+        if (this.characters[character].Costumes.FirstOrDefault(x => x.OriginalCostume == costume) is ReplacementCostume replacement)
         {
-            if (replacementCostume.ReplacementBindPath != null)
+            if (replacement.ReplacementFilePath != null)
             {
-                replacementBindPath = replacementCostume.ReplacementBindPath;
+                replacementCostume = replacement;
                 return true;
             }
         }

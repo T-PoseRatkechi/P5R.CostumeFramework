@@ -28,7 +28,7 @@ public class Mod : ModBase
         Log.Logger = this.logger;
         Log.LogLevel = this.config.LogLevel;
 
-        this.costumes = new(this.modLoader, this.hooks);
+        this.costumes = new(this.modLoader, this.hooks, this.config);
     }
 
     #region Standard Overrides

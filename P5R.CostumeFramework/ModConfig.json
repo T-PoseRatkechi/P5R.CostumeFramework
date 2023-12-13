@@ -11,8 +11,8 @@
   "ModNativeDll32": "",
   "ModNativeDll64": "",
   "Tags": [],
-  "CanUnload": null,
-  "HasExports": null,
+  "CanUnload": false,
+  "HasExports": false,
   "IsLibrary": true,
   "ReleaseMetadataFileName": "P5R.CostumeFramework.ReleaseMetadata.json",
   "PluginData": {
@@ -109,10 +109,22 @@
           "ReleaseMetadataName": "Reloaded.Universal.FileEmulationFramework.ReleaseMetadata.json"
         }
       }
+    },
+    "GameBananaDependencies": {
+      "IdToConfigMap": {
+        "BGME.Framework": {
+          "Config": {
+            "ItemType": "Mod",
+            "ItemId": 477399
+          },
+          "ReleaseMetadataName": "BGME.Framework.ReleaseMetadata.json"
+        }
+      }
     }
   },
   "IsUniversalMod": false,
   "ModDependencies": [
+    "BGME.Framework",
     "crifs.v2.hook",
     "p5rpc.lib",
     "p5rpc.modloader",

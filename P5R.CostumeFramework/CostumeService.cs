@@ -1,4 +1,6 @@
-﻿using P5R.CostumeFramework.Hooks;
+﻿using BGME.Framework.Interfaces;
+using P5R.CostumeFramework.Configuration;
+using P5R.CostumeFramework.Hooks;
 using P5R.CostumeFramework.Models;
 using p5rpc.lib.interfaces;
 using Reloaded.Hooks.Definitions;
@@ -12,27 +14,31 @@ namespace P5R.CostumeFramework;
 internal unsafe class CostumeService
 {
     private readonly IModLoader modLoader;
+    private readonly Config config;
+    private readonly IBgmeApi bgme;
     private readonly IP5RLib p5rLib;
     private readonly CostumeManager costumes;
 
     [Function(CallingConventions.Microsoft)]
     private delegate void LoadCostumeGmdFunction(nint param1, Character character, nint gmdId, nint param4, nint param5);
     private IHook<LoadCostumeGmdFunction>? loadCostumeGmdHook;
-
-    private readonly byte* gmdStringBuffer;
     private MultiAsmHook? redirectGmdHook;
 
     private readonly nint* gmdFileStrPtr;
     private nint tempGmdStrPtr;
 
-    public CostumeService(IModLoader modLoader, IReloadedHooks hooks)
+    private string? currentMusicFile;
+
+    public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
         this.modLoader = modLoader;
+        this.config = config;
         this.costumes = new(modLoader);
 
         IStartupScanner scanner;
         this.modLoader.GetController<IStartupScanner>().TryGetTarget(out scanner!);
-        this.modLoader.GetController<IP5RLib>().TryGetTarget(out p5rLib!);
+        this.modLoader.GetController<IBgmeApi>().TryGetTarget(out this.bgme!);
+        this.modLoader.GetController<IP5RLib>().TryGetTarget(out this.p5rLib!);
 
         gmdFileStrPtr = (nint*)Marshal.AllocHGlobal(sizeof(nint));
         scanner.Scan("Load Costume GMD Function", "48 83 EC 38 8B 44 24 ?? 44 8B D2", result =>
@@ -74,16 +80,27 @@ internal unsafe class CostumeService
         }
         else
         {
-            Log.Verbose($"GMD Info: {param1} || {character} || {gmdId} || {param4} || {param5}");
+            Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
         }
 
-        if (this.costumes.TryGetCostumeBind(character, costume, out var replacementBindPath))
+        if (this.costumes.TryGetReplacementCostume(character, costume, out var replacementCostume))
         {
-            this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(replacementBindPath);
+            this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(replacementCostume!.ReplacementBindPath);
             *this.gmdFileStrPtr = this.tempGmdStrPtr;
 
-            Log.Debug($"{character}: redirected {costume} GMD to {replacementBindPath}");
+            Log.Debug($"{character}: redirected {costume} GMD to {replacementCostume.ReplacementBindPath}");
             this.redirectGmdHook?.Enable();
+
+            if (character == Character.Joker)
+            {
+                var costumeMusicFile = $"{replacementCostume.ReplacementFilePath}.pme";
+                if (File.Exists(costumeMusicFile))
+                {
+                    this.currentMusicFile = costumeMusicFile;
+                    this.bgme.AddPath(this.currentMusicFile);
+                    Log.Information("Added music script for costume.");
+                }
+            }
         }
         else
         {
@@ -94,6 +111,11 @@ internal unsafe class CostumeService
             }
 
             this.tempGmdStrPtr = 0;
+
+            if (character == Character.Joker && this.currentMusicFile != null)
+            {
+                this.bgme.RemovePath(this.currentMusicFile);
+            }
         }
 
         this.loadCostumeGmdHook?.OriginalFunction(param1, character, gmdId, param4, param5);

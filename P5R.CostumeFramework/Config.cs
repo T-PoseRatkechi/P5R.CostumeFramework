@@ -8,6 +8,10 @@ public class Config : Configurable<Config>
     [DisplayName("Log Level")]
     [DefaultValue(LogLevel.Information)]
     public LogLevel LogLevel { get; set; } = LogLevel.Information;
+
+    [DisplayName("Randomize Costumes")]
+    [DefaultValue(false)]
+    public bool RandomizeCostumes { get; set; } = false;
 }
 
 /// <summary>

@@ -24,6 +24,9 @@ internal class CostumeManager
         this.modLoader.ModLoading += this.OnModLoading;
     }
 
+    public ReplacementCostume[] GetAvailableCostumes(Character character)
+        => this.characters[character].Costumes.Where(x => x.ReplacementFilePath != null).ToArray();
+
     public bool TryGetReplacementCostume(Character character, Costume costume, out ReplacementCostume? replacementCostume)
     {
         replacementCostume = null;

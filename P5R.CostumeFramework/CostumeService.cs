@@ -85,6 +85,14 @@ internal unsafe class CostumeService
 
         if (this.costumes.TryGetReplacementCostume(character, costume, out var replacementCostume))
         {
+            if (this.config.RandomizeCostumes)
+            {
+                var costumes = this.costumes.GetAvailableCostumes(character);
+                var randomIndex = Random.Shared.Next(0, costumes.Length);
+                replacementCostume = costumes[randomIndex];
+                Log.Information($"Randomized costume for: {character}");
+            }
+
             this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(replacementCostume!.ReplacementBindPath);
             *this.gmdFileStrPtr = this.tempGmdStrPtr;
 

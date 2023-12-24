@@ -48,7 +48,7 @@ public class ItemTbl
             {
                 var outfitEntry = new OutfitEntry();
 
-                outfitEntry.equippableFlags |= orderedEquippable[j];
+                outfitEntry.equippableFlags |= OrderedEquippable[j];
 
                 var entryBufferSize = Marshal.SizeOf<OutfitEntry>();
                 var entryBuffer = new byte[entryBufferSize];
@@ -69,7 +69,7 @@ public class ItemTbl
         }
     }
 
-    private EquippableUsers[] orderedEquippable = new EquippableUsers[]
+    public static EquippableUsers[] OrderedEquippable = new EquippableUsers[]
     {
         EquippableUsers.Joker,
         EquippableUsers.Ryuji,
@@ -79,8 +79,8 @@ public class ItemTbl
         EquippableUsers.Makoto,
         EquippableUsers.Haru,
         EquippableUsers.Futaba,
-        EquippableUsers.Goro,
-        EquippableUsers.Kasumi,
+        EquippableUsers.Akechi,
+        EquippableUsers.Sumire,
     };
 }
 
@@ -120,6 +120,6 @@ public enum EquippableUsers
     Makoto = 16384,
     Haru = 32768,
     Futaba = 1,
-    Goro = 2,
-    Kasumi = 4,
+    Akechi = 2,
+    Sumire = 4,
 };

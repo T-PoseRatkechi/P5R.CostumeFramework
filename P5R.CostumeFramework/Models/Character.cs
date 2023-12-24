@@ -1,6 +1,8 @@
 ﻿namespace P5R.CostumeFramework.Models;
 
-internal enum Character
+[Flags]
+public enum Character
+    : ushort
 {
     Joker = 1,
     Ryuji,

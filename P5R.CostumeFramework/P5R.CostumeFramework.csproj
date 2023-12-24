@@ -53,4 +53,14 @@
       <ProjectReference Include="..\submodules\BGME\BGME.Framework.Interfaces\BGME.Framework.Interfaces.csproj" />
       <ProjectReference Include="..\submodules\CriFs.V2.Hook.ReloadedII\Interfaces\CriFs.V2.Hook.Interfaces\CriFs.V2.Hook.Interfaces.csproj" />
     </ItemGroup>
+
+	<ItemGroup>
+		<Content Include="P5REssentials\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="FEmulator\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
 </Project>

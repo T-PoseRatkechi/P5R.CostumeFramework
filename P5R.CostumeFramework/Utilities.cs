@@ -13,4 +13,17 @@ internal static class Utilities
         var bigEndianValue = BitConverter.ToUInt16(BitConverter.GetBytes(value).Reverse().ToArray());
         return bigEndianValue;
     }
+
+    public static uint ToBigEndian(this uint value)
+    {
+        var bigEndianValue = BitConverter.ToUInt32(BitConverter.GetBytes(value).Reverse().ToArray());
+        return bigEndianValue;
+    }
+
+
+    public static short ToBigEndian(this short value)
+    {
+        var bigEndianValue = BitConverter.ToInt16(BitConverter.GetBytes(value).Reverse().ToArray());
+        return bigEndianValue;
+    }
 }

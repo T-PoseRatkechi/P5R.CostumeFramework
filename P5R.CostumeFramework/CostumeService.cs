@@ -10,7 +10,6 @@ using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
 using static Reloaded.Hooks.Definitions.X64.FunctionAttribute;
 
 namespace P5R.CostumeFramework;

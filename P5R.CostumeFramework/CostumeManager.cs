@@ -10,18 +10,37 @@ internal class CostumeManager
     private readonly IModLoader modLoader;
     private readonly ICriFsRedirectorApi criFsApi;
     private readonly Dictionary<Character, CharacterCostumes> characters = new();
+    private readonly string modDir;
+
+    private readonly List<Character> costumeSets = new();
+    private readonly ItemTbl itemTbl;
 
     public CostumeManager(IModLoader modLoader)
     {
         this.modLoader = modLoader;
+        this.modDir = this.modLoader.GetDirectoryForModId("P5R.CostumeFramework");
+        var itemFile = Path.Join(this.modDir, "P5REssentials/CPK/DATA.CPK/BATTLE/TABLE/ITEM_original.tbl");
+        this.itemTbl = new(itemFile);
+
         this.modLoader.GetController<ICriFsRedirectorApi>().TryGetTarget(out criFsApi!);
 
         foreach (var character in Enum.GetValues<Character>())
         {
-            this.characters[character] = new(character);
+            this.characters[character] = new(character, this.costumeSets);
         }
 
         this.modLoader.ModLoading += this.OnModLoading;
+        this.modLoader.OnModLoaderInitialized += this.OnModLoaderInitialized;
+    }
+
+    private void OnModLoaderInitialized()
+    {
+        foreach (var set in this.costumeSets)
+        {
+            this.itemTbl.AddCostumeSet();
+        }
+
+        this.itemTbl.WriteItemTbl(Path.Join(this.modDir, "P5REssentials/CPK/DATA.CPK/BATTLE/TABLE/ITEM.TBL"));
     }
 
     public ReplacementCostume[] GetAvailableCostumes(Character character)
@@ -35,7 +54,7 @@ internal class CostumeManager
             return false;
         }
 
-        if (this.characters[character].Costumes.FirstOrDefault(x => x.OriginalCostume == costume) is ReplacementCostume replacement)
+        if (this.characters[character].Costumes.FirstOrDefault(x => x.CostumeId == costume) is ReplacementCostume replacement)
         {
             if (replacement.ReplacementFilePath != null)
             {
@@ -45,6 +64,25 @@ internal class CostumeManager
         }
 
         return false;
+    }
+
+    private Dictionary<int, string> costumeItemNames = new();
+
+    public bool GetCostumeName(int itemId, out string? name)
+        => this.costumeItemNames.TryGetValue(itemId, out name);
+
+    public bool IsCostumeItemId(int itemId) => this.costumeItemNames.ContainsKey(itemId);
+
+    private Dictionary<int, string?> costumeDescriptions = new();
+
+    public string? GetCostumeDescription(int itemId)
+    {
+        if (this.costumeDescriptions.TryGetValue(itemId, out var description))
+        {
+            return description;
+        }
+
+        return null;
     }
 
     private void OnModLoading(IModV1 mod, IModConfigV1 config)
@@ -67,7 +105,9 @@ internal class CostumeManager
             foreach (var file in Directory.EnumerateFiles(costumesDir, "*.gmd", SearchOption.TopDirectoryOnly))
             {
                 var relativePath = Path.GetRelativePath(modDir, file);
-                this.characters[character].AddReplacementCostume(file, relativePath);
+                var itemId = this.characters[character].AddCostume(file, relativePath);
+                this.costumeItemNames[itemId] = Path.GetFileNameWithoutExtension(file);
+                this.costumeDescriptions[itemId] = this.characters[character].Costumes.Last().Description;
 
                 this.criFsApi.AddBindCallback(context =>
                 {

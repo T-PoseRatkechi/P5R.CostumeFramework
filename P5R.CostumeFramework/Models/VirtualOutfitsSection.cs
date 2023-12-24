@@ -5,11 +5,12 @@ namespace P5R.CostumeFramework.Models;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct VirtualOutfitsSection
 {
-    private const int MAX_OUTFITS = 286;
+    private const int NUM_OUTFIT_SETS = 32;
+    private const int NUM_OUTFITS = 286 + (NUM_OUTFIT_SETS * 10);
 
     public VirtualOutfitsSection()
     {
-        var outfits = new OutfitEntry[MAX_OUTFITS];
+        var outfits = new OutfitEntry[NUM_OUTFITS];
         var size = sizeof(OutfitEntry) * outfits.Length;
         this.size = ((uint)size).ToBigEndian();
 
@@ -23,7 +24,19 @@ public unsafe struct VirtualOutfitsSection
                 outfit.unknown9 = 100;
                 outfit.unknown11 = 20;
                 outfit.unknown12 = 799;
-                outfit.equippableFlags = EquippableUsers.Joker;
+
+                if (i == 13)
+                {
+                    outfit.equippableFlags = EquippableUsers.Akechi;
+                }
+                else if (i < 16)
+                {
+                    outfit.equippableFlags = EquippableUsers.Joker;
+                }
+                else
+                {
+                    outfit.equippableFlags = ItemTbl.OrderedEquippable[(i - 16) % 10];
+                }
 
                 Marshal.StructureToPtr(
                     outfit,
@@ -34,5 +47,5 @@ public unsafe struct VirtualOutfitsSection
     }
 
     public uint size;
-    public fixed byte outfitsBuffer[MAX_OUTFITS * 32];
+    public fixed byte outfitsBuffer[NUM_OUTFITS * 32];
 }

@@ -13,14 +13,11 @@ internal class CostumeManager
     private readonly string modDir;
 
     private readonly List<Character> costumeSets = new();
-    private readonly ItemTbl itemTbl;
 
     public CostumeManager(IModLoader modLoader)
     {
         this.modLoader = modLoader;
         this.modDir = this.modLoader.GetDirectoryForModId("P5R.CostumeFramework");
-        var itemFile = Path.Join(this.modDir, "P5REssentials/CPK/DATA.CPK/BATTLE/TABLE/ITEM_original.tbl");
-        this.itemTbl = new(itemFile);
 
         this.modLoader.GetController<ICriFsRedirectorApi>().TryGetTarget(out criFsApi!);
 
@@ -30,17 +27,6 @@ internal class CostumeManager
         }
 
         this.modLoader.ModLoading += this.OnModLoading;
-        this.modLoader.OnModLoaderInitialized += this.OnModLoaderInitialized;
-    }
-
-    private void OnModLoaderInitialized()
-    {
-        foreach (var set in this.costumeSets)
-        {
-            this.itemTbl.AddCostumeSet();
-        }
-
-        this.itemTbl.WriteItemTbl(Path.Join(this.modDir, "P5REssentials/CPK/DATA.CPK/BATTLE/TABLE/ITEM.TBL"));
     }
 
     public ReplacementCostume[] GetAvailableCostumes(Character character)

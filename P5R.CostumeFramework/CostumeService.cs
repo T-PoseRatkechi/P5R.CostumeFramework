@@ -62,7 +62,7 @@ internal unsafe class CostumeService
     private string? currentMusicFile;
 
     private IAsmHook? virtualOutfitsHook;
-    private nint virtualOutfitsPtr;
+    private static nint virtualOutfitsPtr;
 
     public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
@@ -156,8 +156,8 @@ internal unsafe class CostumeService
 
         var virtualOutfits = new VirtualOutfitsSection();
         var size = Marshal.SizeOf(virtualOutfits);
-        this.virtualOutfitsPtr = Marshal.AllocHGlobal(size);
-        Marshal.StructureToPtr(virtualOutfits, this.virtualOutfitsPtr, false);
+        virtualOutfitsPtr = Marshal.AllocHGlobal(size + 1000);
+        Marshal.StructureToPtr(virtualOutfits, virtualOutfitsPtr, false);
 
         scanner.Scan(
             "Use Virtual Outfit Section",
@@ -167,7 +167,7 @@ internal unsafe class CostumeService
                 var patch = new string[]
                 {
                     "use64",
-                    $"mov rdi, {this.virtualOutfitsPtr}"
+                    $"mov rdi, {virtualOutfitsPtr}"
                 };
 
                 this.virtualOutfitsHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
@@ -184,7 +184,6 @@ internal unsafe class CostumeService
         {
             if (this.costumes.GetCostumeDescription(this.displayCostumeId) is string description)
             {
-                Log.Debug($"{this.displayCostumeId}");
                 if (this.costumeDescriptionsCache.TryGetValue(this.displayCostumeId, out var strPtr))
                 {
                     return strPtr;

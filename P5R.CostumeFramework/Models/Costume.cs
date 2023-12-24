@@ -26,4 +26,9 @@ internal enum Costume
     Demonica_Head,
     Demonica_Suit,
     New_Cinema_Outfit,
+
+    // Custom
+    PLACEHOLDER_1 = 27,
+    PLACEHOLDER_2,
+    PLACEHOLDER_3,
 }

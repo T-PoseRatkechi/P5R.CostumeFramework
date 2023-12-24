@@ -4,10 +4,14 @@ using P5R.CostumeFramework.Hooks;
 using P5R.CostumeFramework.Models;
 using p5rpc.lib.interfaces;
 using Reloaded.Hooks.Definitions;
+using Reloaded.Hooks.Definitions.Enums;
 using Reloaded.Hooks.Definitions.X64;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
+using static Reloaded.Hooks.Definitions.X64.FunctionAttribute;
 
 namespace P5R.CostumeFramework;
 
@@ -24,10 +28,42 @@ internal unsafe class CostumeService
     private IHook<LoadCostumeGmdFunction>? loadCostumeGmdHook;
     private MultiAsmHook? redirectGmdHook;
 
+    [Function(CallingConventions.Microsoft)]
+    private delegate nint GetItemNameFunction(int itemId);
+    private IHook<GetItemNameFunction>? getItemNameHook;
+
+    [Function(new[] { Register.rbx, Register.rax }, Register.rax, true)]
+    private delegate int GetItemCountFunction(int itemId, int itemCount);
+    private IReverseWrapper<GetItemCountFunction>? itemCountWrapper;
+    private IAsmHook? itemCountHook;
+
+    /// <summary>
+    /// Sets an item's count.
+    /// </summary>
+    /// <param name="itemId">Item ID.</param>
+    /// <param name="itemCount">Item count.</param>
+    /// <param name="param3">Related to whether an item is labeled "New" when swapping costumes.</param>
+    [Function(CallingConventions.Microsoft)]
+    private delegate void SetItemCountFunction(int itemId, int itemCount, nint param3);
+    private IHook<SetItemCountFunction>? setItemCountHook;
+
+    [Function(Register.rax, Register.rax, true)]
+    private delegate int SetDescriptionItemIdFunction(int itemId);
+    private IReverseWrapper<SetDescriptionItemIdFunction>? setDescriptionWrapper;
+    private IAsmHook? setDescriptionHook;
+
+    [Function(Register.rax, Register.rax, true)]
+    private delegate nint GetDescriptionDelegate(nint originalPtr);
+    private IReverseWrapper<GetDescriptionDelegate>? getDescriptionWrapper;
+    private IAsmHook? getDescriptionHook;
+
     private readonly nint* gmdFileStrPtr;
     private nint tempGmdStrPtr;
 
     private string? currentMusicFile;
+
+    private IAsmHook? virtualOutfitsHook;
+    private nint virtualOutfitsPtr;
 
     public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
@@ -55,16 +91,175 @@ internal unsafe class CostumeService
             var redirectCostumeGmd1 = hooks.CreateAsmHook(
                 patch,
                 result + 0x4A,
-                Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour.DoNotExecuteOriginal);
+                AsmHookBehaviour.DoNotExecuteOriginal);
 
             var redirectCostumeGmd2 = hooks.CreateAsmHook(
                 patch,
                 result + 0xDF,
-                Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour.DoNotExecuteOriginal);
+                AsmHookBehaviour.DoNotExecuteOriginal);
 
             this.redirectGmdHook = new(redirectCostumeGmd1, redirectCostumeGmd2);
             this.redirectGmdHook.Activate().Disable();
         });
+
+        scanner.Scan("Get Item Name Function", "B8 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC 4C 8B DC 48 83 EC 78", result =>
+        {
+            this.getItemNameHook = hooks.CreateHook<GetItemNameFunction>(this.GetItemName, result + 15).Activate();
+        });
+
+        scanner.Scan("Get Item Count Hook", "84 C0 0F 84 ?? ?? ?? ?? 0F B7 FB C1 EF 0C", result =>
+        {
+            var patch = new string[]
+            {
+                "use64",
+                Utilities.PushCallerRegisters,
+                hooks.Utilities.GetAbsoluteCallMnemonics(this.GetItemCount, out this.itemCountWrapper),
+                Utilities.PopCallerRegisters,
+            };
+
+            this.itemCountHook = hooks.CreateAsmHook(patch, result).Activate();
+        });
+
+        scanner.Scan("Set Item Count Function", "4C 8B DC 49 89 5B ?? 57 48 83 EC 70 48 8D 05", result =>
+        {
+            this.setItemCountHook = hooks.CreateHook<SetItemCountFunction>(this.SetItemCount, result).Activate();
+        });
+
+        scanner.Scan("Get Item ID for Description Hook", "8B 85 ?? ?? ?? ?? 41 0F 28 CB F3 0F 58 0D", result =>
+        {
+            var patch = new string[]
+            {
+                "use64",
+                Utilities.PushCallerRegisters,
+                hooks.Utilities.GetAbsoluteCallMnemonics(this.SetDescriptionItemId, out this.setDescriptionWrapper),
+                Utilities.PopCallerRegisters,
+            };
+
+            this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteAfter).Activate();
+        });
+
+        scanner.Scan("Get Item Description Pointer", "0F B6 3C ?? 85 FF", result =>
+        {
+            var patch = new string[]
+            {
+                "use64",
+                Utilities.PushCallerRegisters,
+                hooks.Utilities.GetAbsoluteCallMnemonics(this.GetDescriptionPointer, out this.getDescriptionWrapper),
+                Utilities.PopCallerRegisters,
+            };
+
+            this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
+        });
+
+#if DEBUG
+        Debugger.Launch();
+#endif
+
+        var virtualOutfits = new VirtualOutfitsSection();
+        var size = Marshal.SizeOf(virtualOutfits);
+        this.virtualOutfitsPtr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(virtualOutfits, this.virtualOutfitsPtr, false);
+
+        scanner.Scan(
+            "Use Virtual Outfit Section",
+            "8B 37 48 83 C7 04 0F CE 48 63 EE 48 8B CD E8 ?? ?? ?? ?? 4C 8B F0 48 8B 05 ?? ?? ?? ?? 48 85 C0 74 ?? 48 8B D5 49 8B CE FF D0 48 8B CD 4C 89 35 ?? ?? ?? ?? 48 C1 E9 05",
+            result =>
+            {
+                var patch = new string[]
+                {
+                    "use64",
+                    $"mov rdi, {this.virtualOutfitsPtr}"
+                };
+
+                this.virtualOutfitsHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
+            });
+    }
+
+    private int displayCostumeId;
+
+    private Dictionary<int, nint> costumeDescriptionsCache = new();
+
+    private nint GetDescriptionPointer(nint originalPtr)
+    {
+        if (this.displayCostumeId != -1)
+        {
+            if (this.costumes.GetCostumeDescription(this.displayCostumeId) is string description)
+            {
+                Log.Debug($"{this.displayCostumeId}");
+                if (this.costumeDescriptionsCache.TryGetValue(this.displayCostumeId, out var strPtr))
+                {
+                    return strPtr;
+                }
+                else
+                {
+                    this.costumeDescriptionsCache[displayCostumeId] = Marshal.StringToHGlobalAnsi(description);
+                    return this.costumeDescriptionsCache[displayCostumeId];
+                }
+            }
+        }
+
+        return originalPtr;
+    }
+
+    private int SetDescriptionItemId(int itemId)
+    {
+        if (this.costumes.IsCostumeItemId(itemId))
+        {
+            //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
+            this.displayCostumeId = itemId;
+            return 0x7000;
+        }
+
+        this.displayCostumeId = -1;
+        return itemId;
+    }
+
+    private void SetItemCount(int itemId, int itemCount, nint param3)
+    {
+        if (this.costumes.IsCostumeItemId(itemId))
+        {
+            Log.Debug("Ignoring SetItemCount for Custom Costume.");
+        }
+        else
+        {
+            Log.Debug($"SetItemCount || Item ID: {itemId} || Count: {itemCount} || param3: {param3}");
+            this.setItemCountHook.OriginalFunction(itemId, itemCount, param3);
+        }
+    }
+
+    private int GetItemCount(int itemId, int itemCount)
+    {
+        Log.Debug($"GetItemCount || Item ID: {itemId} || Count: {itemCount}");
+        if (this.costumes.IsCostumeItemId(itemId))
+        {
+            Log.Debug($"Overwriting costume count with 1.");
+            return 1;
+        }
+
+        return itemCount;
+    }
+
+    private readonly Dictionary<string, nint> itemNamesCache = new();
+
+    private nint GetItemName(int itemId)
+    {
+        Log.Verbose($"Getting Item Name: {itemId}");
+        if (this.costumes.GetCostumeName(itemId, out var name) && name != null)
+        {
+            if (this.itemNamesCache.TryGetValue(name, out var strPtr))
+            {
+                return strPtr;
+            }
+            else
+            {
+                this.itemNamesCache[name] = Marshal.StringToHGlobalAnsi(name);
+                return this.itemNamesCache[name];
+            }
+        }
+        else
+        {
+            return this.getItemNameHook?.OriginalFunction(itemId) ?? 0;
+        }
     }
 
     private void LoadCostumeGmd(nint param1, Character character, nint gmdId, nint param4, nint param5)
@@ -75,7 +270,7 @@ internal unsafe class CostumeService
 
         if (Enum.IsDefined(character))
         {
-            Log.Debug($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
+            Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
             Log.Debug($"{character} || Constume Item ID: {costumeEquipId} || Costume ID: {costumeId} || Costume: {costume}");
         }
         else

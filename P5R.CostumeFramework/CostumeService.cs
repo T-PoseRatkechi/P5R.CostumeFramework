@@ -64,6 +64,9 @@ internal unsafe class CostumeService
     private IAsmHook? virtualOutfitsHook;
     private static nint virtualOutfitsPtr;
 
+    private IAsmHook? nextSectionHook;
+    private readonly nint nextSectionPtr;
+
     public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
         this.modLoader = modLoader;
@@ -156,8 +159,10 @@ internal unsafe class CostumeService
 
         var virtualOutfits = new VirtualOutfitsSection();
         var size = Marshal.SizeOf(virtualOutfits);
-        virtualOutfitsPtr = Marshal.AllocHGlobal(size + 1000);
+        virtualOutfitsPtr = Marshal.AllocHGlobal(size);
         Marshal.StructureToPtr(virtualOutfits, virtualOutfitsPtr, false);
+
+        this.nextSectionPtr = Marshal.AllocHGlobal(sizeof(nint));
 
         scanner.Scan(
             "Use Virtual Outfit Section",
@@ -167,10 +172,33 @@ internal unsafe class CostumeService
                 var patch = new string[]
                 {
                     "use64",
+
+                    // Calculate and save pointer to next item section.
+                    "xor rax, rax",
+                    "mov eax, [rdi]",
+                    "bswap eax",
+                    "lea rdi, [rdi + rax + 16]",        // Assumes outfit section always has 12 bytes of padding.
+                                                        // which *should* be true, even if a mod adds new entries.
+                    $"mov rax, {this.nextSectionPtr}",
+                    "mov [rax], rdi",
+
+                    // Set pointer to virtual outfit data.
                     $"mov rdi, {virtualOutfitsPtr}"
                 };
 
                 this.virtualOutfitsHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
+
+                // Fix pointer so it points to the next section
+                // in the original item TBL.
+                var nextSectionAddress = result + 0x82;
+                var nextSectionPatch = new string[]
+                {
+                    "use64",
+                    $"mov rdi, {this.nextSectionPtr}",
+                    "mov rdi, [rdi]",
+                };
+
+                this.nextSectionHook = hooks.CreateAsmHook(nextSectionPatch, nextSectionAddress, AsmHookBehaviour.ExecuteFirst).Activate();
             });
     }
 

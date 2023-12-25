@@ -92,20 +92,20 @@ public struct OutfitEntry
     }
 
     public uint icon = 4;
+    public ushort unknown0 = 0;
     public ushort unknown1 = 0;
     public ushort unknown2 = 0;
-    public ushort unknown3 = 0;
     public EquippableUsers equippableFlags = 0;
+    public ushort unknown3 = 0;
     public ushort unknown4 = 0;
     public ushort unknown5 = 0;
     public ushort unknown6 = 0;
     public ushort unknown7 = 0;
-    public ushort unknown8 = 0;
-    public ushort unknown9 = 100;
-    public ushort unknown10 = 0;
-    public ushort unknown11 = 20;
-    public ushort unknown12 = 799;
-    public ushort unknown13 = 0;
+    public ushort unknown8 = 100;
+    public ushort unknown9 = 0;
+    public ushort unknown10 = 20;
+    public ushort unknown11 = 799;
+    public ushort unknown12 = 0;
 }
 
 [Flags]

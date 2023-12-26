@@ -2,6 +2,7 @@
 using P5R.CostumeFramework.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
+using System.Diagnostics;
 
 namespace P5R.CostumeFramework;
 
@@ -27,6 +28,10 @@ public class Mod : ModBase
 
         Log.Logger = this.logger;
         Log.LogLevel = this.config.LogLevel;
+
+#if DEBUG
+        Debugger.Launch();
+#endif
 
         this.costumes = new(this.modLoader, this.hooks, this.config);
     }

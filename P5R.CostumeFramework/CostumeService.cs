@@ -27,10 +27,6 @@ internal unsafe class CostumeService
     private IHook<LoadCostumeGmdFunction>? loadCostumeGmdHook;
     private MultiAsmHook? redirectGmdHook;
 
-    [Function(CallingConventions.Microsoft)]
-    private delegate nint GetItemNameFunction(int itemId);
-    private IHook<GetItemNameFunction>? getItemNameHook;
-
     [Function(new[] { Register.rbx, Register.rax }, Register.rax, true)]
     private delegate int GetItemCountFunction(int itemId, int itemCount);
     private IReverseWrapper<GetItemCountFunction>? itemCountWrapper;
@@ -46,20 +42,13 @@ internal unsafe class CostumeService
     private delegate void SetItemCountFunction(int itemId, int itemCount, nint param3);
     private IHook<SetItemCountFunction>? setItemCountHook;
 
-    [Function(Register.rax, Register.rax, true)]
-    private delegate int SetDescriptionItemIdFunction(int itemId);
-    private IReverseWrapper<SetDescriptionItemIdFunction>? setDescriptionWrapper;
-    private IAsmHook? setDescriptionHook;
-
-    [Function(Register.rax, Register.rax, true)]
-    private delegate nint GetDescriptionDelegate(nint originalPtr);
-    private IReverseWrapper<GetDescriptionDelegate>? getDescriptionWrapper;
-    private IAsmHook? getDescriptionHook;
-
     private readonly nint* gmdFileStrPtr;
     private nint tempGmdStrPtr;
 
     private string? currentMusicFile;
+
+    private readonly VirtualOutfitsHook outfitsHook;
+    private readonly ItemNameDescriptionHook nameDescriptionHook;
 
     public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
@@ -71,6 +60,9 @@ internal unsafe class CostumeService
         this.modLoader.GetController<IStartupScanner>().TryGetTarget(out scanner!);
         this.modLoader.GetController<IBgmeApi>().TryGetTarget(out this.bgme!);
         this.modLoader.GetController<IP5RLib>().TryGetTarget(out this.p5rLib!);
+
+        this.outfitsHook = new(scanner, hooks);
+        this.nameDescriptionHook = new(scanner, hooks, this.costumes);
 
         gmdFileStrPtr = (nint*)Marshal.AllocHGlobal(sizeof(nint));
         scanner.Scan("Load Costume GMD Function", "48 83 EC 38 8B 44 24 ?? 44 8B D2", result =>
@@ -98,11 +90,6 @@ internal unsafe class CostumeService
             this.redirectGmdHook.Activate().Disable();
         });
 
-        scanner.Scan("Get Item Name Function", "B8 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC 4C 8B DC 48 83 EC 78", result =>
-        {
-            this.getItemNameHook = hooks.CreateHook<GetItemNameFunction>(this.GetItemName, result + 15).Activate();
-        });
-
         scanner.Scan("Get Item Count Hook", "84 C0 0F 84 ?? ?? ?? ?? 0F B7 FB C1 EF 0C", result =>
         {
             var patch = new string[]
@@ -120,75 +107,6 @@ internal unsafe class CostumeService
         {
             this.setItemCountHook = hooks.CreateHook<SetItemCountFunction>(this.SetItemCount, result).Activate();
         });
-
-        scanner.Scan("Get Item ID for Description Hook", "8B 85 ?? ?? ?? ?? 41 0F 28 CB F3 0F 58 0D", result =>
-        {
-            var patch = new string[]
-            {
-                "use64",
-                Utilities.PushCallerRegisters,
-                hooks.Utilities.GetAbsoluteCallMnemonics(this.SetDescriptionItemId, out this.setDescriptionWrapper),
-                Utilities.PopCallerRegisters,
-            };
-
-            this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteAfter).Activate();
-        });
-
-        scanner.Scan("Get Item Description Pointer", "0F B6 3C ?? 85 FF", result =>
-        {
-            var patch = new string[]
-            {
-                "use64",
-                Utilities.PushCallerRegisters,
-                hooks.Utilities.GetAbsoluteCallMnemonics(this.GetDescriptionPointer, out this.getDescriptionWrapper),
-                Utilities.PopCallerRegisters,
-            };
-
-            this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
-        });
-
-#if DEBUG
-        Debugger.Launch();
-#endif
-
-    }
-
-    private int displayCostumeId;
-
-    private Dictionary<int, nint> costumeDescriptionsCache = new();
-
-    private nint GetDescriptionPointer(nint originalPtr)
-    {
-        if (this.displayCostumeId != -1)
-        {
-            if (this.costumes.GetCostumeDescription(this.displayCostumeId) is string description)
-            {
-                if (this.costumeDescriptionsCache.TryGetValue(this.displayCostumeId, out var strPtr))
-                {
-                    return strPtr;
-                }
-                else
-                {
-                    this.costumeDescriptionsCache[displayCostumeId] = Marshal.StringToHGlobalAnsi(description);
-                    return this.costumeDescriptionsCache[displayCostumeId];
-                }
-            }
-        }
-
-        return originalPtr;
-    }
-
-    private int SetDescriptionItemId(int itemId)
-    {
-        if (this.costumes.IsCostumeItemId(itemId))
-        {
-            //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
-            this.displayCostumeId = itemId;
-            return 0x7000;
-        }
-
-        this.displayCostumeId = -1;
-        return itemId;
     }
 
     private void SetItemCount(int itemId, int itemCount, nint param3)
@@ -214,29 +132,6 @@ internal unsafe class CostumeService
         }
 
         return itemCount;
-    }
-
-    private readonly Dictionary<string, nint> itemNamesCache = new();
-
-    private nint GetItemName(int itemId)
-    {
-        Log.Verbose($"Getting Item Name: {itemId}");
-        if (this.costumes.GetCostumeName(itemId, out var name) && name != null)
-        {
-            if (this.itemNamesCache.TryGetValue(name, out var strPtr))
-            {
-                return strPtr;
-            }
-            else
-            {
-                this.itemNamesCache[name] = Marshal.StringToHGlobalAnsi(name);
-                return this.itemNamesCache[name];
-            }
-        }
-        else
-        {
-            return this.getItemNameHook?.OriginalFunction(itemId) ?? 0;
-        }
     }
 
     private void LoadCostumeGmd(nint param1, Character character, nint gmdId, nint param4, nint param5)

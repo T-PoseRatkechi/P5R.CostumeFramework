@@ -1,4 +1,5 @@
-﻿using Reloaded.Hooks.Definitions;
+﻿using P5R.CostumeFramework.Costumes;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.Enums;
 using Reloaded.Hooks.Definitions.X64;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
@@ -25,7 +26,7 @@ internal unsafe class ItemNameDescriptionHook
     private IReverseWrapper<GetDescriptionDelegate>? getDescriptionWrapper;
     private IAsmHook getDescriptionHook;
 
-    private readonly CostumeManager costumes;
+    private readonly CostumeRegistry costumes;
     private readonly Dictionary<string, nint> namesCache = new();
     private readonly Dictionary<int, nint> descriptionsCache = new();
     private int displayCostumeId;
@@ -33,7 +34,7 @@ internal unsafe class ItemNameDescriptionHook
     public ItemNameDescriptionHook(
         IStartupScanner scanner,
         IReloadedHooks hooks,
-        CostumeManager costumes)
+        CostumeRegistry costumes)
     {
         this.costumes = costumes;
 
@@ -71,55 +72,53 @@ internal unsafe class ItemNameDescriptionHook
 
     private nint GetItemName(int itemId)
     {
-        if (this.costumes.GetCostumeName(itemId, out var name) && name != null)
+        if (this.costumes.TryGetModCostume(itemId, out var costume))
         {
-            if (this.namesCache.TryGetValue(name, out var strPtr))
+            if (this.namesCache.TryGetValue(costume.Name, out var strPtr))
             {
                 return strPtr;
             }
             else
             {
-                this.namesCache[name] = Marshal.StringToHGlobalAnsi(name);
-                return this.namesCache[name];
+                this.namesCache[costume.Name] = Marshal.StringToHGlobalAnsi(costume.Name);
+                return this.namesCache[costume.Name];
             }
         }
-        else
-        {
-            return this.getItemNameHook.OriginalFunction(itemId);
-        }
+
+        return this.getItemNameHook.OriginalFunction(itemId);
     }
 
     private nint GetDescriptionPointer(nint originalPtr)
     {
-        if (this.displayCostumeId != -1)
-        {
-            if (this.costumes.GetCostumeDescription(this.displayCostumeId) is string description)
-            {
-                if (this.descriptionsCache.TryGetValue(this.displayCostumeId, out var strPtr))
-                {
-                    return strPtr;
-                }
-                else
-                {
-                    this.descriptionsCache[displayCostumeId] = Marshal.StringToHGlobalAnsi(description);
-                    return this.descriptionsCache[displayCostumeId];
-                }
-            }
-        }
+        //if (this.displayCostumeId != -1)
+        //{
+        //    if (this.costumes.GetCostumeDescription(this.displayCostumeId) is string description)
+        //    {
+        //        if (this.descriptionsCache.TryGetValue(this.displayCostumeId, out var strPtr))
+        //        {
+        //            return strPtr;
+        //        }
+        //        else
+        //        {
+        //            this.descriptionsCache[displayCostumeId] = Marshal.StringToHGlobalAnsi(description);
+        //            return this.descriptionsCache[displayCostumeId];
+        //        }
+        //    }
+        //}
 
         return originalPtr;
     }
 
     private int SetDescriptionItemId(int itemId)
     {
-        if (this.costumes.IsCostumeItemId(itemId))
-        {
-            //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
-            this.displayCostumeId = itemId;
-            return 0x7000;
-        }
+        //if (this.costumes.IsCostumeItemId(itemId))
+        //{
+        //    //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
+        //    this.displayCostumeId = itemId;
+        //    return 0x7000;
+        //}
 
-        this.displayCostumeId = -1;
+        //this.displayCostumeId = -1;
         return itemId;
     }
 }

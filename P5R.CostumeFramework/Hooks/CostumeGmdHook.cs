@@ -1,5 +1,6 @@
 ﻿using BGME.Framework.Interfaces;
 using P5R.CostumeFramework.Configuration;
+using P5R.CostumeFramework.Costumes;
 using P5R.CostumeFramework.Models;
 using p5rpc.lib.interfaces;
 using Reloaded.Hooks.Definitions;
@@ -23,7 +24,7 @@ internal unsafe class CostumeGmdHook
     private readonly IBgmeApi bgme;
     private readonly IP5RLib p5rLib;
     private readonly Config config;
-    private readonly CostumeManager costumes;
+    private readonly CostumeRegistry costumes;
     private string? currentMusicFile;
 
     public CostumeGmdHook(
@@ -32,7 +33,7 @@ internal unsafe class CostumeGmdHook
         IBgmeApi bgme,
         IP5RLib p5RLib,
         Config config,
-        CostumeManager costumes)
+        CostumeRegistry costumes)
     {
         this.bgme = bgme;
         this.p5rLib = p5RLib;
@@ -70,32 +71,32 @@ internal unsafe class CostumeGmdHook
     {
         var costumeEquipId = this.GetEquipmentId(character, EquipSlot.Costume);
         var costumeId = this.GetCostumeId(costumeEquipId);
-        var costume = (Costume)costumeId;
+        var costumeSet = (CostumeSet)costumeId;
 
         if (Enum.IsDefined(character))
         {
             Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
-            Log.Debug($"{character} || Constume Item ID: {costumeEquipId} || Costume ID: {costumeId} || Costume: {costume}");
+            Log.Debug($"{character} || Constume Item ID: {costumeEquipId} || Costume ID: {costumeId} || Costume: {costumeSet}");
         }
         else
         {
             Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
         }
 
-        if (this.costumes.TryGetReplacementCostume(character, costume, out var replacementCostume))
+        if (this.costumes.TryGetModCostume(costumeEquipId, out var costume))
         {
-            if (this.config.RandomizeCostumes)
-            {
-                var costumes = this.costumes.GetAvailableCostumes(character);
-                var randomIndex = Random.Shared.Next(0, costumes.Length);
-                replacementCostume = costumes[randomIndex];
-                Log.Information($"Randomized costume for: {character}");
-            }
+            //if (this.config.RandomizeCostumes)
+            //{
+            //    var costumes = this.costumes.GetAvailableCostumes(character);
+            //    var randomIndex = Random.Shared.Next(0, costumes.Length);
+            //    costume = costumes[randomIndex];
+            //    Log.Information($"Randomized costume for: {character}");
+            //}
 
-            this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(replacementCostume!.ReplacementBindPath);
+            this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(costume.ReplacementBindPath);
             *this.gmdFileStrPtr = this.tempGmdStrPtr;
 
-            Log.Debug($"{character}: redirected {costume} GMD to {replacementCostume.ReplacementBindPath}");
+            Log.Debug($"{character}: redirected {costumeSet} GMD to {costume.ReplacementBindPath}");
             this.redirectGmdHook?.Enable();
 
             if (character == Character.Joker)
@@ -106,7 +107,7 @@ internal unsafe class CostumeGmdHook
                     this.currentMusicFile = null;
                 }
 
-                var costumeMusicFile = $"{replacementCostume.ReplacementFilePath}.pme";
+                var costumeMusicFile = $"{costume.ReplacementFilePath}.pme";
                 if (File.Exists(costumeMusicFile))
                 {
                     this.currentMusicFile = costumeMusicFile;

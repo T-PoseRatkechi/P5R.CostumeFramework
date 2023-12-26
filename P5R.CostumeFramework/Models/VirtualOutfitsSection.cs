@@ -9,8 +9,9 @@ public unsafe struct VirtualOutfitsSection
     /// Amount of "sets" of outfits for mods. Essentially
     /// equivalent to max amount of new costumes per character.
     /// </summary>
-    public const int MOD_OUTFIT_SETS = 32;
-    public const int NUM_OUTFITS = 286 + (MOD_OUTFIT_SETS * 10);
+    public const int MOD_OUTFIT_SETS = 128;
+    public const int GAME_OUTFIT_SETS = 27;
+    public const int NUM_OUTFITS = (GAME_OUTFIT_SETS + MOD_OUTFIT_SETS) * 10 + 16;
 
     public VirtualOutfitsSection()
     {
@@ -32,6 +33,12 @@ public unsafe struct VirtualOutfitsSection
 
     public uint size;
     public fixed byte outfitsData[NUM_OUTFITS * 32];
+
+    public static bool IsModOutfit(int itemId)
+    {
+        var costumeItemId = itemId - 0x7010;
+        return costumeItemId > (GAME_OUTFIT_SETS * 10);
+    }
 
     private static OutfitEntry[] GetOutfits()
     {

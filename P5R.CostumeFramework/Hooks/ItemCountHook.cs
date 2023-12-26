@@ -1,4 +1,6 @@
-﻿using Reloaded.Hooks.Definitions;
+﻿using P5R.CostumeFramework.Costumes;
+using P5R.CostumeFramework.Models;
+using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.X64;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using static Reloaded.Hooks.Definitions.X64.FunctionAttribute;
@@ -23,12 +25,12 @@ internal unsafe class ItemCountHook
     private delegate void SetItemCountFunction(int itemId, int itemCount, nint param3);
     private IHook<SetItemCountFunction>? setItemCountHook;
 
-    private readonly CostumeManager costumes;
+    private readonly CostumeRegistry costumes;
 
     public ItemCountHook(
         IStartupScanner scanner,
         IReloadedHooks hooks,
-        CostumeManager costumes)
+        CostumeRegistry costumes)
     {
         this.costumes = costumes;
 
@@ -53,26 +55,33 @@ internal unsafe class ItemCountHook
 
     private void SetItemCount(int itemId, int itemCount, nint param3)
     {
-        if (this.costumes.IsCostumeItemId(itemId))
+        if (VirtualOutfitsSection.IsModOutfit(itemId))
         {
-            Log.Debug("Ignoring SetItemCount for Custom Costume.");
+            Log.Debug($"SetItemCount || Item ID: {itemId} || Count: {itemCount} || param3: {param3}");
+            Log.Debug("Ignoring SetItemCount for mod costume.");
         }
         else
         {
-            Log.Debug($"SetItemCount || Item ID: {itemId} || Count: {itemCount} || param3: {param3}");
+            Log.Verbose($"SetItemCount || Item ID: {itemId} || Count: {itemCount} || param3: {param3}");
             this.setItemCountHook.OriginalFunction(itemId, itemCount, param3);
         }
     }
 
     private int GetItemCount(int itemId, int itemCount)
     {
-        Log.Debug($"GetItemCount || Item ID: {itemId} || Count: {itemCount}");
-        if (this.costumes.IsCostumeItemId(itemId))
+        if (VirtualOutfitsSection.IsModOutfit(itemId))
         {
-            Log.Debug($"Overwriting costume count with 1.");
-            return 1;
+            if (this.costumes.IsActiveModCostume(itemId))
+            {
+                Log.Debug($"GetItemCount || Item ID: {itemId} || Count: {itemCount} || Overwriting costume count with 1.");
+                return 1;
+            }
+
+            // Initial item count is from garbage data for mod costumes.
+            return 0;
         }
 
+        Log.Verbose($"GetItemCount || Item ID: {itemId} || Count: {itemCount}");
         return itemCount;
     }
 }

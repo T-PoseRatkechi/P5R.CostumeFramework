@@ -1,6 +1,6 @@
 ﻿namespace P5R.CostumeFramework.Models;
 
-internal enum Costume
+internal enum CostumeSet
 {
     Default,
     Summer_Uniform,
@@ -26,9 +26,4 @@ internal enum Costume
     Demonica_Head,
     Demonica_Suit,
     New_Cinema_Outfit,
-
-    // Custom
-    PLACEHOLDER_1 = 27,
-    PLACEHOLDER_2,
-    PLACEHOLDER_3,
 }

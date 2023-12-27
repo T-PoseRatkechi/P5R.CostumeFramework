@@ -21,10 +21,15 @@ internal unsafe class ItemNameDescriptionHook
     private IReverseWrapper<SetDescriptionItemIdFunction>? setDescriptionWrapper;
     private IAsmHook setDescriptionHook;
 
-    [Function(Register.rax, Register.rax, true)]
+    [Function(Register.rsi, Register.rax, true)]
     private delegate nint GetDescriptionDelegate(nint originalPtr);
     private IReverseWrapper<GetDescriptionDelegate>? getDescriptionWrapper;
     private IAsmHook getDescriptionHook;
+
+    [Function(CallingConventions.Microsoft)]
+    private delegate int InitializeBmdFunction(nint bmdPtr);
+    private IFunction<InitializeBmdFunction> initializeBmd;
+    private IHook<InitializeBmdFunction> initalizeBmdHook;
 
     private readonly CostumeRegistry costumes;
     private readonly Dictionary<string, nint> namesCache = new();
@@ -58,16 +63,56 @@ internal unsafe class ItemNameDescriptionHook
 
         scanner.Scan("Get Item Description Pointer", "0F B6 3C ?? 85 FF", result =>
         {
+            //var patch = new string[]
+            //{
+            //    "use64",
+            //    Utilities.PushCallerRegisters,
+            //    hooks.Utilities.GetAbsoluteCallMnemonics(this.GetDescriptionPointer, out this.getDescriptionWrapper),
+            //    Utilities.PopCallerRegisters,
+            //};
+
+            //this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
+        });
+
+        scanner.Scan("Overwrite MSG Pointer", "48 63 84 24 ?? ?? ?? ?? 85 C0 79 ?? 4C 89 F0", result =>
+        {
             var patch = new string[]
             {
                 "use64",
                 Utilities.PushCallerRegisters,
                 hooks.Utilities.GetAbsoluteCallMnemonics(this.GetDescriptionPointer, out this.getDescriptionWrapper),
                 Utilities.PopCallerRegisters,
+                "test rax, rax",
+                "jz original",
+                "mov rsi, rax",
+                "original:"
             };
 
             this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
         });
+
+        scanner.Scan("Initialize BMD Function", "48 83 EC 28 66 83 79 ?? 00", result =>
+        {
+            this.initalizeBmdHook = hooks.CreateHook<InitializeBmdFunction>(this.InitializeBmdImpl, result).Activate();
+            //var func = hooks.CreateWrapper<InitializeBmdFunction>(result, out _);
+            //foreach (var costume in this.costumes.GetModCostumes())
+            //{
+            //    if (costume.DescriptionMessageBinary == null)
+            //    {
+            //        continue;
+            //    }
+
+            //    var ptr = Marshal.AllocHGlobal(costume.DescriptionMessageBinary.Length);
+            //    Marshal.Copy(costume.DescriptionMessageBinary, 0, ptr, costume.DescriptionMessageBinary.Length);
+            //    this.InitializeBmdImpl(ptr);
+            //    this.descriptionsCache[costume.ItemId] = ptr;
+            //}
+        });
+    }
+
+    private int InitializeBmdImpl(nint bmdPtr)
+    {
+        return this.initalizeBmdHook.OriginalFunction(bmdPtr);
     }
 
     private nint GetItemName(int itemId)
@@ -90,35 +135,38 @@ internal unsafe class ItemNameDescriptionHook
 
     private nint GetDescriptionPointer(nint originalPtr)
     {
-        //if (this.displayCostumeId != -1)
-        //{
-        //    if (this.costumes.GetCostumeDescription(this.displayCostumeId) is string description)
-        //    {
-        //        if (this.descriptionsCache.TryGetValue(this.displayCostumeId, out var strPtr))
-        //        {
-        //            return strPtr;
-        //        }
-        //        else
-        //        {
-        //            this.descriptionsCache[displayCostumeId] = Marshal.StringToHGlobalAnsi(description);
-        //            return this.descriptionsCache[displayCostumeId];
-        //        }
-        //    }
-        //}
+        if (this.displayCostumeId != -1)
+        {
+            //Log.Debug($"Overwriting MSG: {originalPtr:X}");
+            if (this.descriptionsCache.TryGetValue(this.displayCostumeId, out var descriptionPtr))
+            {
+                return descriptionPtr;
+            }
+        }
 
-        return originalPtr;
+        //Log.Debug($"BMD: {Marshal.PtrToStringAnsi(originalPtr)} || {originalPtr:X}");
+        return IntPtr.Zero;
     }
 
     private int SetDescriptionItemId(int itemId)
     {
-        //if (this.costumes.IsCostumeItemId(itemId))
-        //{
-        //    //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
-        //    this.displayCostumeId = itemId;
-        //    return 0x7000;
-        //}
+        if (this.costumes.TryGetModCostume(itemId, out var costume)
+            && costume.DescriptionMessageBinary != null)
+        {
+            //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
+            if (!this.descriptionsCache.ContainsKey(itemId))
+            {
+                var ptr = Marshal.AllocHGlobal(costume.DescriptionMessageBinary.Length);
+                Marshal.Copy(costume.DescriptionMessageBinary, 0, ptr, costume.DescriptionMessageBinary.Length);
+                this.InitializeBmdImpl(ptr);
+                this.descriptionsCache[itemId] = ptr;
+            }
 
-        //this.displayCostumeId = -1;
+            this.displayCostumeId = itemId;
+            return 0x7000;
+        }
+
+        this.displayCostumeId = -1;
         return itemId;
     }
 }

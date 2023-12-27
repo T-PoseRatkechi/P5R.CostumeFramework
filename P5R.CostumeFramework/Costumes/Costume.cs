@@ -22,5 +22,5 @@ internal class Costume
 
     public string? MusicScriptFile { get; set; }
 
-    public string? DescriptionFile { get; set; }
+    public byte[]? DescriptionMessageBinary { get; set; }
 }

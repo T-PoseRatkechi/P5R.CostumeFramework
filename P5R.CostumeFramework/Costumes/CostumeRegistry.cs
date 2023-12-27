@@ -1,4 +1,8 @@
-﻿using CriFs.V2.Hook.Interfaces;
+﻿using AtlusScriptLibrary.Common.Libraries;
+using AtlusScriptLibrary.Common.Text.Encodings;
+using AtlusScriptLibrary.MessageScriptLanguage;
+using AtlusScriptLibrary.MessageScriptLanguage.Compiler;
+using CriFs.V2.Hook.Interfaces;
 using P5R.CostumeFramework.Models;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
@@ -9,6 +13,8 @@ internal class CostumeRegistry
 {
     private readonly IModLoader modLoader;
     private readonly ICriFsRedirectorApi criFsApi;
+    private readonly MessageScriptCompiler compiler;
+
     private readonly List<Costume> costumes = new();
 
     public CostumeRegistry(IModLoader modLoader)
@@ -16,6 +22,13 @@ internal class CostumeRegistry
         this.modLoader = modLoader;
         this.modLoader.GetController<ICriFsRedirectorApi>().TryGetTarget(out criFsApi!);
         this.modLoader.ModLoading += this.OnModLoading;
+
+        AtlusEncoding.SetCharsetDirectory(Path.Join(modLoader.GetDirectoryForModId("P5R.CostumeFramework"), "Charsets"));
+        LibraryLookup.SetLibraryPath(Path.Join(modLoader.GetDirectoryForModId("P5R.CostumeFramework"), "Libraries"));
+        this.compiler = new(FormatVersion.Version1BigEndian, AtlusEncoding.Persona5RoyalEFIGS)
+        {
+            Library = LibraryLookup.GetLibrary("p5r")
+        };
 
         var characters = Enum.GetValues<Character>();
         for (int currentSet = 0; currentSet < VirtualOutfitsSection.GAME_OUTFIT_SETS + VirtualOutfitsSection.MOD_OUTFIT_SETS; currentSet++)
@@ -27,6 +40,20 @@ internal class CostumeRegistry
             }
         }
     }
+
+    public Costume[] GetModCostumes()
+        => this.costumes.Where(x => this.IsActiveModCostume(x.ItemId)).ToArray();
+
+    public bool TryGetModCostume(int itemId, out Costume? costume)
+    {
+        costume = this.costumes.FirstOrDefault(x => x.ItemId == itemId && x.ReplacementFilePath != null);
+        return costume != null;
+    }
+
+    public bool IsActiveModCostume(int itemId)
+        => VirtualOutfitsSection.IsModOutfit(itemId)
+        && this.costumes.FirstOrDefault(x => x.ItemId == itemId)?.ReplacementFilePath != null;
+
     private void OnModLoading(IModV1 mod, IModConfigV1 config)
     {
         if (!config.ModDependencies.Contains("P5R.CostumeFramework"))
@@ -58,7 +85,29 @@ internal class CostumeRegistry
                 modCostume.ReplacementFilePath = file;
                 modCostume.ReplacementBindPath = relativePath;
 
-                Log.Information($"Assigned Costume || Character: {modCostume.Character} || Item ID: {modCostume.ItemId} || {modCostume.ReplacementBindPath}");
+                var descriptionFile = Path.ChangeExtension(file, ".msg");
+                if (File.Exists(descriptionFile))
+                {
+                    if (compiler.TryCompile(File.ReadAllText(descriptionFile), out var messageScript))
+                    {
+                        using var ms = new MemoryStream();
+                        messageScript.ToStream(ms, true);
+                        modCostume.DescriptionMessageBinary = ms.ToArray();
+                    }
+                    else
+                    {
+                        Log.Warning($"Failed to compile costume description.\nFile: {descriptionFile}");
+                    }
+
+                }
+
+                var musicFile = Path.ChangeExtension(file, ".pme");
+                if (File.Exists(musicFile))
+                {
+                    modCostume.MusicScriptFile = musicFile;
+                }
+
+                Log.Information($"Character: {modCostume.Character} || Item ID: {modCostume.ItemId} || Bind: {modCostume.ReplacementBindPath}");
                 this.criFsApi.AddBindCallback(context =>
                 {
                     context.RelativePathToFileMap[$@"R2\{relativePath}"] = new()
@@ -74,16 +123,6 @@ internal class CostumeRegistry
             }
         }
     }
-
-    public bool TryGetModCostume(int itemId, out Costume? costume)
-    {
-        costume = this.costumes.FirstOrDefault(x => x.ItemId == itemId && x.ReplacementFilePath != null);
-        return costume != null;
-    }
-
-    public bool IsActiveModCostume(int itemId)
-        => VirtualOutfitsSection.IsModOutfit(itemId)
-        && this.costumes.FirstOrDefault(x => x.ItemId == itemId)?.ReplacementFilePath != null;
 
     private Costume? GetAvailableModCostume(Character character)
         => this.costumes

@@ -107,10 +107,9 @@ internal unsafe class CostumeGmdHook
                     this.currentMusicFile = null;
                 }
 
-                var costumeMusicFile = $"{costume.ReplacementFilePath}.pme";
-                if (File.Exists(costumeMusicFile))
+                if (costume.MusicScriptFile != null)
                 {
-                    this.currentMusicFile = costumeMusicFile;
+                    this.currentMusicFile = costume.MusicScriptFile;
                     this.bgme.AddPath(this.currentMusicFile);
                     Log.Information("Added music script for costume.");
                 }

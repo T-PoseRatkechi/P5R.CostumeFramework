@@ -37,12 +37,15 @@ internal unsafe class ItemNameDescriptionHook
     private readonly Dictionary<int, nint> descriptionsCache = new();
     private int displayCostumeId;
 
+    private readonly nint fallbackNameStrPtr;
+
     public ItemNameDescriptionHook(
         IStartupScanner scanner,
         IReloadedHooks hooks,
         CostumeRegistry costumes)
     {
         this.costumes = costumes;
+        this.fallbackNameStrPtr = Marshal.StringToHGlobalAnsi("UNUSED (Equipping will break game!)");
 
         scanner.Scan("Get Item Name Function", "B8 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC 4C 8B DC 48 83 EC 78", result =>
         {
@@ -60,19 +63,6 @@ internal unsafe class ItemNameDescriptionHook
             };
 
             this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteAfter).Activate();
-        });
-
-        scanner.Scan("Get Item Description Pointer", "0F B6 3C ?? 85 FF", result =>
-        {
-            //var patch = new string[]
-            //{
-            //    "use64",
-            //    Utilities.PushCallerRegisters,
-            //    hooks.Utilities.GetAbsoluteCallMnemonics(this.GetDescriptionPointer, out this.getDescriptionWrapper),
-            //    Utilities.PopCallerRegisters,
-            //};
-
-            //this.setDescriptionHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
         });
 
         scanner.Scan("Overwrite MSG Pointer", "48 63 84 24 ?? ?? ?? ?? 85 C0 79 ?? 4C 89 F0", result =>
@@ -105,17 +95,22 @@ internal unsafe class ItemNameDescriptionHook
 
     private nint GetItemName(int itemId)
     {
-        if (this.costumes.TryGetModCostume(itemId, out var costume))
+        if (VirtualOutfitsSection.IsModOutfit(itemId))
         {
-            if (this.namesCache.TryGetValue(costume.Name, out var strPtr))
+            if (this.costumes.TryGetModCostume(itemId, out var costume))
             {
-                return strPtr;
+                if (this.namesCache.TryGetValue(costume.Name, out var strPtr))
+                {
+                    return strPtr;
+                }
+                else
+                {
+                    this.namesCache[costume.Name] = Marshal.StringToHGlobalAnsi(costume.Name);
+                    return this.namesCache[costume.Name];
+                }
             }
-            else
-            {
-                this.namesCache[costume.Name] = Marshal.StringToHGlobalAnsi(costume.Name);
-                return this.namesCache[costume.Name];
-            }
+
+            return this.fallbackNameStrPtr;
         }
 
         return this.getItemNameHook.OriginalFunction(itemId);

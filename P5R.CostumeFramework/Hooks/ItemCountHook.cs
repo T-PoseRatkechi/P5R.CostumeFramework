@@ -10,6 +10,8 @@ namespace P5R.CostumeFramework.Hooks;
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 internal unsafe class ItemCountHook
 {
+    private static readonly int[] BonusTweaksOutfitIds = new int[] { 33, 38, 43, 48, 54, 58, 84, 87, 88, 89, 90, 91, 92, 94, 95 };
+
     [Function(new[] { Register.rbx, Register.rax }, Register.rax, true)]
     private delegate int GetItemCountFunction(int itemId, int itemCount);
     private IReverseWrapper<GetItemCountFunction>? itemCountWrapper;
@@ -69,7 +71,8 @@ internal unsafe class ItemCountHook
 
     private int GetItemCount(int itemId, int itemCount)
     {
-        if (VirtualOutfitsSection.IsModOutfit(itemId))
+        if (VirtualOutfitsSection.IsModOutfit(itemId)
+            || IsBonusTweaksOutfit(itemId))
         {
             if (this.costumes.IsActiveModCostume(itemId))
             {
@@ -83,5 +86,21 @@ internal unsafe class ItemCountHook
 
         Log.Verbose($"GetItemCount || Item ID: {itemId} || Count: {itemCount}");
         return itemCount;
+    }
+
+    private static bool IsBonusTweaksOutfit(int itemId)
+    {
+        var outfitId = itemId - 0x7000;
+        if (outfitId > 1 && outfitId < 12)
+        {
+            return true;
+        }
+
+        if (BonusTweaksOutfitIds.Contains(outfitId))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

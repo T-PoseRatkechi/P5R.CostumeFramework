@@ -93,10 +93,10 @@ internal unsafe class CostumeGmdHook
             //    Log.Information($"Randomized costume for: {character}");
             //}
 
-            this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(costume.ReplacementBindPath);
+            this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(costume.GmdBindPath);
             *this.gmdFileStrPtr = this.tempGmdStrPtr;
 
-            Log.Debug($"{character}: redirected {costumeSet} GMD to {costume.ReplacementBindPath}");
+            Log.Debug($"{character}: redirected {costumeSet} GMD to {costume.GmdBindPath}");
             this.redirectGmdHook?.Enable();
 
             if (character == Character.Joker)

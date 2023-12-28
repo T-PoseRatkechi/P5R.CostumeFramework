@@ -16,11 +16,13 @@ internal class Costume
 
     public string Name { get; set; } = "MISSING NAME";
 
-    public string? ReplacementFilePath { get; set; }
+    public string? GmdFilePath { get; set; }
 
-    public string? ReplacementBindPath { get; set; }
+    public string? GmdBindPath { get; set; }
 
     public string? MusicScriptFile { get; set; }
 
     public byte[]? DescriptionMessageBinary { get; set; }
+
+    public string? GoodbyeBindPath { get; set; }
 }

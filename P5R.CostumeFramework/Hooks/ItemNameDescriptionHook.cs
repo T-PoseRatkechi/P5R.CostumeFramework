@@ -1,4 +1,5 @@
 ﻿using P5R.CostumeFramework.Costumes;
+using P5R.CostumeFramework.Models;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.Enums;
 using Reloaded.Hooks.Definitions.X64;
@@ -94,19 +95,6 @@ internal unsafe class ItemNameDescriptionHook
         scanner.Scan("Initialize BMD Function", "48 83 EC 28 66 83 79 ?? 00", result =>
         {
             this.initalizeBmdHook = hooks.CreateHook<InitializeBmdFunction>(this.InitializeBmdImpl, result).Activate();
-            //var func = hooks.CreateWrapper<InitializeBmdFunction>(result, out _);
-            //foreach (var costume in this.costumes.GetModCostumes())
-            //{
-            //    if (costume.DescriptionMessageBinary == null)
-            //    {
-            //        continue;
-            //    }
-
-            //    var ptr = Marshal.AllocHGlobal(costume.DescriptionMessageBinary.Length);
-            //    Marshal.Copy(costume.DescriptionMessageBinary, 0, ptr, costume.DescriptionMessageBinary.Length);
-            //    this.InitializeBmdImpl(ptr);
-            //    this.descriptionsCache[costume.ItemId] = ptr;
-            //}
         });
     }
 
@@ -150,19 +138,25 @@ internal unsafe class ItemNameDescriptionHook
 
     private int SetDescriptionItemId(int itemId)
     {
-        if (this.costumes.TryGetModCostume(itemId, out var costume)
-            && costume.DescriptionMessageBinary != null)
+        // Catch and handle descriptions for any mod outfit.
+        if (VirtualOutfitsSection.IsModOutfit(itemId))
         {
-            //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
-            if (!this.descriptionsCache.ContainsKey(itemId))
+            this.displayCostumeId = itemId;
+
+            // Initialize and cache the costume description if exists.
+            if (this.costumes.TryGetModCostume(itemId, out var costume)
+                && costume.DescriptionMessageBinary != null)
             {
-                var ptr = Marshal.AllocHGlobal(costume.DescriptionMessageBinary.Length);
-                Marshal.Copy(costume.DescriptionMessageBinary, 0, ptr, costume.DescriptionMessageBinary.Length);
-                this.InitializeBmdImpl(ptr);
-                this.descriptionsCache[itemId] = ptr;
+                if (!this.descriptionsCache.ContainsKey(itemId))
+                {
+                    var ptr = Marshal.AllocHGlobal(costume.DescriptionMessageBinary.Length);
+                    Marshal.Copy(costume.DescriptionMessageBinary, 0, ptr, costume.DescriptionMessageBinary.Length);
+                    this.InitializeBmdImpl(ptr);
+                    this.descriptionsCache[itemId] = ptr;
+                }
             }
 
-            this.displayCostumeId = itemId;
+            //Log.Debug("Defaulting to Item ID 0x7000 for for costume description.");
             return 0x7000;
         }
 

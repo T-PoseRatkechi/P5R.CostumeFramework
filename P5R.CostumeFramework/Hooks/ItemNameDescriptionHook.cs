@@ -133,6 +133,8 @@ internal unsafe class ItemNameDescriptionHook
 
     private int SetDescriptionItemId(int itemId)
     {
+        Log.Verbose($"Getting Description for Item: {itemId}");
+
         // Catch and handle descriptions for any mod outfit.
         if (VirtualOutfitsSection.IsModOutfit(itemId))
         {

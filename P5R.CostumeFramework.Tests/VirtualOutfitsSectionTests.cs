@@ -20,4 +20,21 @@ public class VirtualOutfitsSectionTests
         using var writer = new BinaryWriter(file);
         writer.Write(buffer);
     }
+
+    [Fact]
+    public void OutfitSection_IsModOutfitTest()
+    {
+        for (int i = 0x7000; i < 0x7000 + 300; i++)
+        {
+            var outfitId = i - 0x7000;
+            if (outfitId == 285)
+            {
+                Assert.False(VirtualOutfitsSection.IsModOutfit(i));
+            }
+            else if (outfitId == 286)
+            {
+                Assert.True(VirtualOutfitsSection.IsModOutfit(i));
+            }
+        }
+    }
 }

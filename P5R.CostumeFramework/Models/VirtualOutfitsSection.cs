@@ -36,8 +36,14 @@ public unsafe struct VirtualOutfitsSection
 
     public static bool IsModOutfit(int itemId)
     {
-        var costumeItemId = itemId - 0x7010;
-        return costumeItemId > (GAME_OUTFIT_SETS * 10) && costumeItemId < NUM_OUTFITS;
+        var outfitId = itemId - 0x7000;
+        if (outfitId >= (16 + GAME_OUTFIT_SETS * 10)
+            && outfitId < NUM_OUTFITS)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static OutfitEntry[] GetOutfits()

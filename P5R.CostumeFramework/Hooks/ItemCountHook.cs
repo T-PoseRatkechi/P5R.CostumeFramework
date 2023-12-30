@@ -76,7 +76,7 @@ internal unsafe class ItemCountHook
         {
             if (this.costumes.IsActiveModCostume(itemId))
             {
-                Log.Debug($"GetItemCount || Item ID: {itemId} || Count: {itemCount} || Overwriting costume count with 1.");
+                Log.Verbose($"GetItemCount || Item ID: {itemId} || Count: {itemCount} || Overwriting costume count with 1.");
                 return 1;
             }
 

@@ -31,6 +31,9 @@ internal class CostumeRegistry
         };
 
         this.costumeFactory = new(criFsApi, compiler, this.costumes);
+
+        this.costumeFactory.CreateCostume(Character.Akechi, "Messy Hair Akechi", @"MODEL\CHARACTER\0009\C0009_073_00.GMD");
+        this.costumeFactory.CreateCostume(Character.Akechi, "Ratkechi", @"MODEL\CHARACTER\0009\C0009_099_00.GMD");
     }
 
     public bool TryGetModCostume(int itemId, out Costume costume)

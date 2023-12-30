@@ -38,6 +38,21 @@ internal class CostumeFactory
         Log.Information($"Costume created: {modCostume.Character} || Item ID: {modCostume.ItemId} || Bind: {modCostume.GmdBindPath}");
     }
 
+    public void CreateCostume(Character character, string name, string bindPath)
+    {
+        var modCostume = this.GetAvailableModCostume(character);
+        if (modCostume == null)
+        {
+            Log.Warning($"No available costume slots for: {character}");
+            return;
+        }
+
+        modCostume.Name = name;
+        modCostume.GmdFilePath = string.Empty;
+        modCostume.GmdBindPath = bindPath;
+        Log.Information($"Costume created: {modCostume.Character} || Item ID: {modCostume.ItemId} || Bind: {modCostume.GmdBindPath}");
+    }
+
     private void AddGmdFile(Costume costume, string gmdFile, string modDir)
     {
         costume.GmdFilePath = gmdFile;

@@ -69,21 +69,21 @@ internal unsafe class CostumeGmdHook
 
     private void LoadCostumeGmd(nint param1, Character character, nint gmdId, nint param4, nint param5)
     {
-        var costumeEquipId = this.GetEquipmentId(character, EquipSlot.Costume);
-        var costumeId = this.GetCostumeId(costumeEquipId);
-        var costumeSet = (CostumeSet)costumeId;
+        var outfitItemId = this.GetEquipmentId(character, EquipSlot.Costume);
+        var outfitId = this.GetOutfitId(outfitItemId);
+        var outfitSet = (CostumeSet)VirtualOutfitsSection.GetOutfitSetId(outfitItemId);
 
         if (Enum.IsDefined(character))
         {
             Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
-            Log.Debug($"{character} || Constume Item ID: {costumeEquipId} || Costume ID: {costumeId} || Costume: {costumeSet}");
+            Log.Debug($"{character} || Item ID: {outfitItemId} || Outfit ID: {outfitId} || Outfit Set: {outfitSet}");
         }
         else
         {
             Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
         }
 
-        if (this.costumes.TryGetModCostume(costumeEquipId, out var costume))
+        if (this.costumes.TryGetModCostume(outfitItemId, out var costume))
         {
             //if (this.config.RandomizeCostumes)
             //{
@@ -96,7 +96,7 @@ internal unsafe class CostumeGmdHook
             this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(costume.GmdBindPath);
             *this.gmdFileStrPtr = this.tempGmdStrPtr;
 
-            Log.Debug($"{character}: redirected {costumeSet} GMD to {costume.GmdBindPath}");
+            Log.Debug($"{character}: redirected {outfitSet} GMD to {costume.GmdBindPath}");
             this.redirectGmdHook?.Enable();
 
             if (character == Character.Joker)
@@ -140,9 +140,8 @@ internal unsafe class CostumeGmdHook
         return this.p5rLib.FlowCaller.GET_EQUIP((int)character, (int)equipSlot);
     }
 
-    private int GetCostumeId(int equipmentId)
-        => (equipmentId - 0x7010) / 10;
+    private int GetOutfitId(int itemId) => itemId - 0x7000;
 
     private int GetCostumeModelId(int equipmentId)
-        => this.GetCostumeId(equipmentId) + 150;
+        => VirtualOutfitsSection.GetOutfitSetId(equipmentId) + 150;
 }

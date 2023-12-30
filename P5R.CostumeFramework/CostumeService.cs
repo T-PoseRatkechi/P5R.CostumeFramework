@@ -21,6 +21,7 @@ internal unsafe class CostumeService
     private readonly ItemCountHook itemCountHook;
     private readonly GoodbyeHook goodbyeHook;
     private readonly GapHook gapHook;
+    private readonly EmtGapHook emtGapHook;
 
     public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
@@ -38,5 +39,6 @@ internal unsafe class CostumeService
         this.itemCountHook = new(scanner, hooks, costumes);
         this.goodbyeHook = new(scanner, hooks, p5rLib, costumes);
         this.gapHook = new(scanner, hooks, costumes);
+        this.emtGapHook = new(scanner, hooks, p5rLib);
     }
 }

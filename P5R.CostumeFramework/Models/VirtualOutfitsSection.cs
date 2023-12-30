@@ -46,6 +46,9 @@ public unsafe struct VirtualOutfitsSection
         return false;
     }
 
+    public static int GetOutfitSetId(int itemId)
+        => (itemId - 0x7010) / 10;
+
     private static OutfitEntry[] GetOutfits()
     {
         var entries = new OutfitEntry[NUM_OUTFITS];

@@ -24,11 +24,6 @@ internal class GapHook
         CostumeRegistry costumes)
     {
         this.costumes = costumes;
-        //foreach (var character in Enum.GetValues<Character>())
-        //{
-        //    this.prevSetIds[character] = -1;
-        //}
-
         scanner.Scan("GAP Get Outfit Item ID Hook", "B8 67 66 66 66 41 8D 90", result =>
         {
             var patch = new string[]
@@ -65,23 +60,14 @@ internal class GapHook
             }
 
             var setId = VirtualOutfitsSection.GetOutfitSetId(costume.ItemId);
-            //var newSetId = setId % VirtualOutfitsSection.GAME_OUTFIT_SETS;
-            var newSetId = VirtualOutfitsSection.GAME_OUTFIT_SETS + (setId % 4) + 1;
-
+            var newSetId = GetNewSetId(setId);
             var prevSetId = fakeOutfitId != null ? VirtualOutfitsSection.GetOutfitSetId(fakeOutfitId.NewId) : -1;
 
             // Increment new set ID if same as previous causing same
             // item ID to be calculated, causing the outfit to not update.
             if (newSetId == prevSetId)
             {
-                newSetId = (newSetId + 1) % VirtualOutfitsSection.GAME_OUTFIT_SETS;
-            }
-
-            // Some Morgana sets try loading a extra GAP files.
-            if (costume.Character == Character.Morgana && newSetId == 5)
-            {
-                newSetId++;
-                Log.Debug($"GAP Get Outfit Item ID: Morgana set ID increased to: {newSetId}");
+                newSetId = GetNewSetId(newSetId + 1);
             }
 
             var equipId = (int)costume.Character - 1;
@@ -95,6 +81,9 @@ internal class GapHook
 
         return 0;
     }
+
+    private static int GetNewSetId(int currentSetId)
+        => (currentSetId % 4) + VirtualOutfitsSection.GAME_OUTFIT_SETS + 1;
 
     private record FakeOutfitItemId(int OriginalId, int NewId);
 }

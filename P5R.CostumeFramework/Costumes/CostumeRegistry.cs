@@ -88,7 +88,7 @@ internal class CostumeRegistry
 
             foreach (var file in Directory.EnumerateFiles(characterDir, "*.gmd", SearchOption.TopDirectoryOnly))
             {
-                this.costumeFactory.Create(modDir, character, file);
+                this.costumeFactory.Create(config.ModId, modDir, character, file);
             }
         }
     }

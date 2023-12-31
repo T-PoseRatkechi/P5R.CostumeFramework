@@ -20,7 +20,7 @@ internal class CostumeFactory
         this.costumes = costumes;
     }
 
-    public Costume? Create(string modDir, Character character, string gmdFile)
+    public Costume? Create(string modId, string modDir, Character character, string gmdFile)
     {
         var modCostume = this.GetAvailableModCostume(character);
         if (modCostume == null)
@@ -30,6 +30,7 @@ internal class CostumeFactory
         }
 
         modCostume.Name = Path.GetFileNameWithoutExtension(gmdFile);
+        modCostume.OwnerModId = modId;
         this.AddGmdFile(modCostume, gmdFile, modDir);
         this.AddDescription(modCostume);
         this.AddMusic(modCostume);
@@ -92,6 +93,12 @@ internal class CostumeFactory
         if (File.Exists(musicFile))
         {
             costume.MusicScriptFile = musicFile;
+        }
+
+        var battleThemeFile = Path.ChangeExtension(costume.GmdFilePath, ".theme.pme");
+        if (File.Exists(battleThemeFile))
+        {
+            costume.BattleThemeFile = battleThemeFile;
         }
     }
 

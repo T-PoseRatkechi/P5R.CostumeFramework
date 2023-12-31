@@ -20,8 +20,10 @@ internal unsafe class CostumeService
     private readonly ItemNameDescriptionHook nameDescriptionHook;
     private readonly ItemCountHook itemCountHook;
     private readonly GoodbyeHook goodbyeHook;
-    private readonly GapHook gapHook;
+    private readonly EquippedItemHook equippedItemHook;
     private readonly EmtGapHook emtGapHook;
+    private readonly FieldChangeHook fieldChangeHook;
+    private readonly CostumeMusicService costumeMusic;
 
     public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
@@ -38,7 +40,9 @@ internal unsafe class CostumeService
         this.nameDescriptionHook = new(scanner, hooks, costumes);
         this.itemCountHook = new(scanner, hooks, costumes);
         this.goodbyeHook = new(scanner, hooks, p5rLib, costumes);
-        this.gapHook = new(scanner, hooks, costumes);
         this.emtGapHook = new(scanner, hooks, p5rLib);
+        this.fieldChangeHook = new(scanner, hooks, p5rLib, config, costumes);
+        this.costumeMusic = new(bgme, p5rLib, costumes);
+        this.equippedItemHook = new(scanner, hooks, costumes, this.costumeMusic);
     }
 }

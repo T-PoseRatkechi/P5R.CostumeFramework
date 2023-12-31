@@ -19,6 +19,7 @@ internal class FieldChangeHook
     private readonly IP5RLib p5rLib;
     private readonly Config config;
     private readonly CostumeRegistry costumes;
+    private readonly CostumeMusicService costumeMusic;
 
     public Action? FieldChanged;
 
@@ -27,11 +28,13 @@ internal class FieldChangeHook
         IReloadedHooks hooks,
         IP5RLib p5rLib,
         Config config,
-        CostumeRegistry costumes)
+        CostumeRegistry costumes,
+        CostumeMusicService costumeMusic)
     {
         this.p5rLib = p5rLib;
         this.config = config;
         this.costumes = costumes;
+        this.costumeMusic = costumeMusic;
 
         var wrapperAsm = hooks.Utilities.GetAbsoluteCallMnemonics(() => this.FieldChanged?.Invoke(), out this.fieldChangedWrapper);
         var patch = new string[]
@@ -68,5 +71,7 @@ internal class FieldChangeHook
                 Log.Debug($"Randomized costume: {character} || {randomCostume.GmdBindPath}");
             }
         }
+
+        this.costumeMusic.Refresh();
     }
 }

@@ -44,8 +44,8 @@ internal unsafe class CostumeService
         this.itemCountHook = new(scanner, hooks, costumes);
         this.goodbyeHook = new(scanner, hooks, p5rLib, costumes);
         this.emtGapHook = new(scanner, hooks, p5rLib);
-        this.fieldChangeHook = new(scanner, hooks, p5rLib, config, costumes);
         this.costumeMusic = new(bgme, battleThemes, p5rLib, costumes);
+        this.fieldChangeHook = new(scanner, hooks, p5rLib, config, costumes, this.costumeMusic);
         this.equippedItemHook = new(scanner, hooks, costumes, this.costumeMusic);
     }
 }

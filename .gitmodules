@@ -8,3 +8,6 @@
 	path = submodules/Atlus-Script-Tools
 	url = https://github.com/AnimatedSwine37/Atlus-Script-Tools.git
 	branch = bf-emulator
+[submodule "submodules/BGME.BattleThemes"]
+	path = submodules/BGME.BattleThemes
+	url = https://github.com/T-PoseRatkechi/BGME.BattleThemes.git

@@ -16,6 +16,7 @@ internal class CostumeRegistry
     private readonly CostumeFactory costumeFactory;
 
     private readonly GameCostumes costumes = new();
+    private readonly Dictionary<Character, Costume> randomizedCostumes;
 
     public CostumeRegistry(IModLoader modLoader)
     {
@@ -23,8 +24,9 @@ internal class CostumeRegistry
         this.modLoader.GetController<ICriFsRedirectorApi>().TryGetTarget(out criFsApi!);
         this.modLoader.ModLoading += this.OnModLoading;
 
-        AtlusEncoding.SetCharsetDirectory(Path.Join(modLoader.GetDirectoryForModId("P5R.CostumeFramework"), "Charsets"));
-        LibraryLookup.SetLibraryPath(Path.Join(modLoader.GetDirectoryForModId("P5R.CostumeFramework"), "Libraries"));
+        var modDir = modLoader.GetDirectoryForModId("P5R.CostumeFramework");
+        AtlusEncoding.SetCharsetDirectory(Path.Join(modDir, "Charsets"));
+        LibraryLookup.SetLibraryPath(Path.Join(modDir, "Libraries"));
         var compiler = new MessageScriptCompiler(FormatVersion.Version1BigEndian, AtlusEncoding.Persona5RoyalEFIGS)
         {
             Library = LibraryLookup.GetLibrary("p5r")
@@ -32,11 +34,17 @@ internal class CostumeRegistry
 
         this.costumeFactory = new(criFsApi, compiler, this.costumes);
 
-        this.costumeFactory.CreateCostume(Character.Akechi, "Messy Hair Akechi", @"MODEL\CHARACTER\0009\C0009_073_00.GMD");
-        this.costumeFactory.CreateCostume(Character.Akechi, "Ratkechi", @"MODEL\CHARACTER\0009\C0009_099_00.GMD");
+        this.randomizedCostumes = CostumeRegistryUtils.AddRandomizedCostumes(this.costumeFactory)
+            .GroupBy(x => x.Character)
+            .ToDictionary(x => x.Key, x => x.First());
+
+        CostumeRegistryUtils.AddExistingCostumes(this.costumeFactory);
     }
 
-    public bool TryGetModCostume(int itemId, out Costume costume)
+    public Costume? GetCostumeById(int itemId)
+        => this.costumes.FirstOrDefault(x => x.ItemId == itemId);
+
+    public bool TryGetModCostume(int itemId, out Costume? costume)
     {
         costume = this.costumes.FirstOrDefault(x => x.ItemId == itemId && x.GmdFilePath != null)!;
         return costume != null;
@@ -45,6 +53,19 @@ internal class CostumeRegistry
     public bool IsActiveModCostume(int itemId)
         => VirtualOutfitsSection.IsModOutfit(itemId)
         && this.costumes.FirstOrDefault(x => x.ItemId == itemId)?.GmdFilePath != null;
+
+    public Costume? GetRandomCostume(Character character)
+    {
+        var costumes = this.costumes
+            .Where(x => x.Character == character)
+            .Where(x => x.GmdBindPath != null).ToArray();
+        if (costumes.Length < 1)
+        {
+            return null;
+        }
+
+        return costumes[Random.Shared.Next(0, costumes.Length)];
+    }
 
     private void OnModLoading(IModV1 mod, IModConfigV1 config)
     {
@@ -67,7 +88,7 @@ internal class CostumeRegistry
 
             foreach (var file in Directory.EnumerateFiles(characterDir, "*.gmd", SearchOption.TopDirectoryOnly))
             {
-                this.costumeFactory.CreateCostume(modDir, character, file);
+                this.costumeFactory.Create(modDir, character, file);
             }
         }
     }

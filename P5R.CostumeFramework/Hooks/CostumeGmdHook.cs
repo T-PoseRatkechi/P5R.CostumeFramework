@@ -27,6 +27,8 @@ internal unsafe class CostumeGmdHook
     private readonly CostumeRegistry costumes;
     private string? currentMusicFile;
 
+    public Action? CostumeChanged;
+
     public CostumeGmdHook(
         IStartupScanner scanner,
         IReloadedHooks hooks,
@@ -69,7 +71,7 @@ internal unsafe class CostumeGmdHook
 
     private void LoadCostumeGmd(nint param1, Character character, nint gmdId, nint param4, nint param5)
     {
-        var outfitItemId = this.GetEquipmentId(character, EquipSlot.Costume);
+        var outfitItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
         var outfitId = this.GetOutfitId(outfitItemId);
         var outfitSet = (CostumeSet)VirtualOutfitsSection.GetOutfitSetId(outfitItemId);
 
@@ -85,35 +87,11 @@ internal unsafe class CostumeGmdHook
 
         if (this.costumes.TryGetModCostume(outfitItemId, out var costume))
         {
-            //if (this.config.RandomizeCostumes)
-            //{
-            //    var costumes = this.costumes.GetAvailableCostumes(character);
-            //    var randomIndex = Random.Shared.Next(0, costumes.Length);
-            //    costume = costumes[randomIndex];
-            //    Log.Information($"Randomized costume for: {character}");
-            //}
-
             this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(costume.GmdBindPath);
             *this.gmdFileStrPtr = this.tempGmdStrPtr;
 
             Log.Debug($"{character}: redirected {outfitSet} GMD to {costume.GmdBindPath}");
             this.redirectGmdHook?.Enable();
-
-            if (character == Character.Joker)
-            {
-                if (this.currentMusicFile != null)
-                {
-                    this.bgme.RemovePath(this.currentMusicFile);
-                    this.currentMusicFile = null;
-                }
-
-                if (costume.MusicScriptFile != null)
-                {
-                    this.currentMusicFile = costume.MusicScriptFile;
-                    this.bgme.AddPath(this.currentMusicFile);
-                    Log.Information("Added music script for costume.");
-                }
-            }
         }
         else
         {
@@ -132,12 +110,8 @@ internal unsafe class CostumeGmdHook
             }
         }
 
+        this.CostumeChanged?.Invoke();
         this.loadCostumeGmdHook?.OriginalFunction(param1, character, gmdId, param4, param5);
-    }
-
-    private int GetEquipmentId(Character character, EquipSlot equipSlot)
-    {
-        return this.p5rLib.FlowCaller.GET_EQUIP((int)character, (int)equipSlot);
     }
 
     private int GetOutfitId(int itemId) => itemId - 0x7000;

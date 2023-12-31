@@ -46,13 +46,10 @@ jobs:
         shell: pwsh
     
     steps:
-    - name: Support longpaths
-      run: git config --system core.longpaths true
-
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        submodules: 'recursive'
+        submodules: 'true'
         
     - name: Setup .NET Core SDK (5.0)
       uses: actions/setup-dotnet@v3

@@ -20,13 +20,13 @@ internal class CostumeFactory
         this.costumes = costumes;
     }
 
-    public void CreateCostume(string modDir, Character character, string gmdFile)
+    public Costume? Create(string modDir, Character character, string gmdFile)
     {
         var modCostume = this.GetAvailableModCostume(character);
         if (modCostume == null)
         {
             Log.Warning($"No available costume slots for: {character}");
-            return;
+            return null;
         }
 
         modCostume.Name = Path.GetFileNameWithoutExtension(gmdFile);
@@ -36,21 +36,29 @@ internal class CostumeFactory
         this.AddGoodbye(modCostume, modDir);
 
         Log.Information($"Costume created: {modCostume.Character} || Item ID: {modCostume.ItemId} || Bind: {modCostume.GmdBindPath}");
+        return modCostume;
     }
 
-    public void CreateCostume(Character character, string name, string bindPath)
+    public Costume? CreateFromExisting(Character character, string name, string bindPath)
     {
         var modCostume = this.GetAvailableModCostume(character);
         if (modCostume == null)
         {
             Log.Warning($"No available costume slots for: {character}");
-            return;
+            return null;
         }
 
         modCostume.Name = name;
         modCostume.GmdFilePath = string.Empty;
         modCostume.GmdBindPath = bindPath;
         Log.Information($"Costume created: {modCostume.Character} || Item ID: {modCostume.ItemId} || Bind: {modCostume.GmdBindPath}");
+        return modCostume;
+    }
+
+    public Costume? CreateFromExisting(Character character, string name, int modelId)
+    {
+        var bindPath = $@"MODEL\CHARACTER\{(int)character:D4}\C{(int)character:D4}_{modelId:D3}_00.GMD";
+        return this.CreateFromExisting(character, name, bindPath);
     }
 
     private void AddGmdFile(Costume costume, string gmdFile, string modDir)

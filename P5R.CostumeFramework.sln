@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P5R.CostumeFramework.Tests"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AtlusScriptLibrary", "submodules\Atlus-Script-Tools\Source\AtlusScriptLibrary\AtlusScriptLibrary.csproj", "{CF8AB6A3-EC2B-4309-BA2B-05EAD6608260}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BGME.BattleThemes.Interfaces", "submodules\BGME.BattleThemes\BGME.BattleThemes.Interfaces\BGME.BattleThemes.Interfaces.csproj", "{49205152-DF49-4C21-B3BC-6D22DD152DB7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{CF8AB6A3-EC2B-4309-BA2B-05EAD6608260}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF8AB6A3-EC2B-4309-BA2B-05EAD6608260}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF8AB6A3-EC2B-4309-BA2B-05EAD6608260}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49205152-DF49-4C21-B3BC-6D22DD152DB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49205152-DF49-4C21-B3BC-6D22DD152DB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49205152-DF49-4C21-B3BC-6D22DD152DB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49205152-DF49-4C21-B3BC-6D22DD152DB7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

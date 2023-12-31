@@ -1,4 +1,5 @@
-﻿using BGME.Framework.Interfaces;
+﻿using BGME.BattleThemes.Interfaces;
+using BGME.Framework.Interfaces;
 using P5R.CostumeFramework.Configuration;
 using P5R.CostumeFramework.Costumes;
 using P5R.CostumeFramework.Hooks;
@@ -14,6 +15,7 @@ internal unsafe class CostumeService
     private readonly IModLoader modLoader;
     private readonly IBgmeApi bgme;
     private readonly IP5RLib p5rLib;
+    private readonly IBattleThemesApi battleThemes;
 
     private readonly CostumeGmdHook costumeGmdHook;
     private readonly VirtualOutfitsHook outfitsHook;
@@ -33,6 +35,7 @@ internal unsafe class CostumeService
         this.modLoader.GetController<IStartupScanner>().TryGetTarget(out scanner!);
         this.modLoader.GetController<IBgmeApi>().TryGetTarget(out this.bgme!);
         this.modLoader.GetController<IP5RLib>().TryGetTarget(out this.p5rLib!);
+        this.modLoader.GetController<IBattleThemesApi>().TryGetTarget(out this.battleThemes!);
 
         var costumes = new CostumeRegistry(modLoader);
         this.costumeGmdHook = new(scanner, hooks, bgme, p5rLib, config, costumes);
@@ -42,7 +45,7 @@ internal unsafe class CostumeService
         this.goodbyeHook = new(scanner, hooks, p5rLib, costumes);
         this.emtGapHook = new(scanner, hooks, p5rLib);
         this.fieldChangeHook = new(scanner, hooks, p5rLib, config, costumes);
-        this.costumeMusic = new(bgme, p5rLib, costumes);
+        this.costumeMusic = new(bgme, battleThemes, p5rLib, costumes);
         this.equippedItemHook = new(scanner, hooks, costumes, this.costumeMusic);
     }
 }

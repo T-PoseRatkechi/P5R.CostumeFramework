@@ -129,7 +129,8 @@
     "p5rpc.lib",
     "p5rpc.modloader",
     "Reloaded.Memory.SigScan.ReloadedII",
-    "reloaded.sharedlib.hooks"
+    "reloaded.sharedlib.hooks",
+    "BGME.BattleThemes"
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [

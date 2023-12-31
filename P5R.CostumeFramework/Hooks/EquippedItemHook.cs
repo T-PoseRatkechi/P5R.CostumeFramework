@@ -8,23 +8,35 @@ using static Reloaded.Hooks.Definitions.X64.FunctionAttribute;
 
 namespace P5R.CostumeFramework.Hooks;
 
-internal class GapHook
+internal class EquippedItemHook
 {
     [Function(Register.r8, Register.rax, true)]
     private delegate int GapGetOutfitItemId(ushort currentOutfitItemId);
     private IReverseWrapper<GapGetOutfitItemId>? getOutfitItemIdWrapper;
     private IAsmHook? getOutfitItemIdHook;
 
+    [Function(Register.rax, Register.rax, true)]
+    private delegate int SetEquippedItem(int itemId);
+    private IReverseWrapper<SetEquippedItem>? setEquippedWrapper;
+    private IAsmHook? setEquippedHook;
+
+    [Function(CallingConventions.Microsoft)]
+    private delegate nint LoadSave(nint param1, nint param2, nint param3);
+    private IHook<LoadSave>? loadSaveHook;
+
     private readonly CostumeRegistry costumes;
+    private readonly CostumeMusicService costumeMusic;
     private readonly Dictionary<Character, FakeOutfitItemId> previousOutfitIds = new();
 
-    public GapHook(
+    public EquippedItemHook(
         IStartupScanner scanner,
         IReloadedHooks hooks,
-        CostumeRegistry costumes)
+        CostumeRegistry costumes,
+        CostumeMusicService costumeMusic)
     {
         this.costumes = costumes;
-        scanner.Scan("GAP Get Outfit Item ID Hook", "B8 67 66 66 66 41 8D 90", result =>
+        this.costumeMusic = costumeMusic;
+        scanner.Scan("(GAP Fix) Get Outfit Item ID Hook", "B8 67 66 66 66 41 8D 90", result =>
         {
             var patch = new string[]
             {
@@ -39,6 +51,29 @@ internal class GapHook
             };
 
             this.getOutfitItemIdHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
+        });
+
+        scanner.Scan("Set Equipped Item ID", "43 0F B7 84 ?? ?? ?? ?? ?? 0F B7 CD", result =>
+        {
+            var patch = new string[]
+            {
+                "use64",
+                Utilities.PushCallerRegisters,
+                "mov rax, rbp",
+                hooks.Utilities.GetAbsoluteCallMnemonics(this.SetEquippedItemImpl, out this.setEquippedWrapper),
+                Utilities.PopCallerRegisters,
+                "test rax, rax",
+                "jz original",
+                "mov rbp, rax",
+                "original:",
+            };
+
+            this.setEquippedHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
+        });
+
+        scanner.Scan("Load Save Hook", "48 89 6C 24 ?? 56 48 83 EC 20 49 8B F0 8B E9", result =>
+        {
+            this.loadSaveHook = hooks.CreateHook<LoadSave>(this.LoadSaveImpl, result).Activate();
         });
     }
 
@@ -77,6 +112,30 @@ internal class GapHook
             Log.Debug($"GAP Get Outfit Item ID overwritten: {costume.Character} || Equip ID: {equipId} || Original: {currentOutfitItemId} || New: {newOutfitItemId}");
             Log.Debug($"Original Set ID: {setId} || New Set ID: {newSetId}");
             return newOutfitItemId;
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// For applying initial costume BGM state since they're not equipped through
+    /// equip function.
+    /// </summary>
+    private nint LoadSaveImpl(nint param1, nint param2, nint param3)
+    {
+        var result = this.loadSaveHook!.OriginalFunction(param1, param2, param3);
+        this.costumeMusic.Refresh();
+        return result;
+    }
+
+    /// <summary>
+    /// Apply costume BGM on equip.
+    /// </summary>
+    private int SetEquippedItemImpl(int itemId)
+    {
+        if (VirtualOutfitsSection.IsOutfit(itemId))
+        {
+            this.costumeMusic.Refresh(itemId);
         }
 
         return 0;

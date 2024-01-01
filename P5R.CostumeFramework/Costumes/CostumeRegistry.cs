@@ -6,6 +6,7 @@ using CriFs.V2.Hook.Interfaces;
 using P5R.CostumeFramework.Models;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
+using System.Diagnostics.CodeAnalysis;
 
 namespace P5R.CostumeFramework.Costumes;
 
@@ -44,7 +45,7 @@ internal class CostumeRegistry
     public Costume? GetCostumeById(int itemId)
         => this.costumes.FirstOrDefault(x => x.ItemId == itemId);
 
-    public bool TryGetModCostume(int itemId, out Costume? costume)
+    public bool TryGetModCostume(int itemId, [NotNullWhen(true)] out Costume? costume)
     {
         costume = this.costumes.FirstOrDefault(x => x.ItemId == itemId && x.GmdFilePath != null)!;
         return costume != null;

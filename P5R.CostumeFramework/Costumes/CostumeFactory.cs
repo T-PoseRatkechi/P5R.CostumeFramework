@@ -35,6 +35,9 @@ internal class CostumeFactory
         this.AddDescription(modCostume);
         this.AddMusic(modCostume);
         this.AddGoodbye(modCostume, modDir);
+        this.AddCutin(modCostume, modDir);
+        this.AddGui(modCostume, modDir);
+        this.AddWeapon(modCostume, modDir);
 
         Log.Information($"Costume created: {modCostume.Character} || Item ID: {modCostume.ItemId} || Bind: {modCostume.GmdBindPath}");
         return modCostume;
@@ -111,6 +114,39 @@ internal class CostumeFactory
             this.criFsApi.AddBind(goodbyeFile, costume.GoodbyeBindPath, "Costume Framework");
         }
     }
+
+    private void AddCutin(Costume costume, string modDir)
+    {
+        var cutinFile = Path.Join(this.GetCharacterDir(costume, modDir), $"{costume.Name}_cutin.dds");
+        if (File.Exists(cutinFile))
+        {
+            costume.CutinBindPath = Path.GetRelativePath(modDir, cutinFile);
+            this.criFsApi.AddBind(cutinFile, costume.CutinBindPath, "Costume Framework");
+        }
+    }
+
+    private void AddGui(Costume costume, string modDir)
+    {
+        var guiFile = Path.Join(this.GetCharacterDir(costume, modDir), $"{costume.Name}_gui.dds");
+        if (File.Exists(guiFile))
+        {
+            costume.GuiBindFile = Path.GetRelativePath(modDir, guiFile);
+            this.criFsApi.AddBind(guiFile, costume.GuiBindFile, "Costume Framework");
+        }
+    }
+
+    private void AddWeapon(Costume costume, string modDir)
+    {
+        var weaponFile = Path.Join(this.GetCharacterDir(costume, modDir), $"{costume.Name}_weapon.gmd");
+        if (File.Exists(weaponFile))
+        {
+            costume.WeaponBindPath = Path.GetRelativePath(modDir, weaponFile);
+            this.criFsApi.AddBind(weaponFile, costume.WeaponBindPath, "Costume Framework");
+        }
+    }
+
+    private string GetCharacterDir(Costume costume, string modDir)
+        => Path.Join(modDir, "costumes", costume.Character.ToString());
 
     private Costume? GetAvailableModCostume(Character character)
         => this.costumes

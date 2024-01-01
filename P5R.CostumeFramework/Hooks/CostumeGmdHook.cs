@@ -105,7 +105,7 @@ internal unsafe class CostumeGmdHook
             if (costume.WeaponBindPath != null && weaponType == WeaponType.Melee)
             {
                 this.SetAssetRedirect(costume.WeaponBindPath);
-                this.equippedItemHook.ForceUpdateCharEquip(costume.Character);
+                //this.equippedItemHook.ForceUpdateCharEquip(costume.Character);
                 Log.Debug($"Weapon GMD redirected: {character} || {costume.WeaponBindPath}");
             }
         }

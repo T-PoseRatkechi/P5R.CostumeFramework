@@ -28,5 +28,23 @@ internal class Costume
 
     public byte[]? DescriptionMessageBinary { get; set; }
 
+    /// <summary>
+    /// AOA character animation ending.
+    /// </summary>
     public string? GoodbyeBindPath { get; set; }
+
+    /// <summary>
+    /// Crit/weakness cutin image.
+    /// </summary>
+    public string? CutinBindPath { get; set; }
+
+    /// <summary>
+    /// Battle GUI character portrait.
+    /// </summary>
+    public string? GuiBindFile { get; set; }
+
+    /// <summary>
+    /// Character weapon model.
+    /// </summary>
+    public string? WeaponBindPath { get; set; }
 }

@@ -14,9 +14,9 @@ namespace P5R.CostumeFramework.Hooks;
 internal unsafe class CostumeGmdHook
 {
     [Function(CallingConventions.Microsoft)]
-    private delegate void LoadCostumeGmdFunction(nint param1, Character character, nint gmdId, nint param4, nint param5);
-    private IHook<LoadCostumeGmdFunction>? loadCostumeGmdHook;
-    private MultiAsmHook? redirectGmdHook;
+    private delegate void LoadAssetHook(nint param1, int modelId, nint gmdId, nint param4, nint param5);
+    private IHook<LoadAssetHook>? loadAssetHook;
+    private MultiAsmHook? loadAssetAsmHooks;
 
     private readonly nint* gmdFileStrPtr;
     private nint tempGmdStrPtr;
@@ -25,9 +25,7 @@ internal unsafe class CostumeGmdHook
     private readonly IP5RLib p5rLib;
     private readonly Config config;
     private readonly CostumeRegistry costumes;
-    private string? currentMusicFile;
-
-    public Action? CostumeChanged;
+    private readonly EquippedItemHook equippedItemHook;
 
     public CostumeGmdHook(
         IStartupScanner scanner,
@@ -35,17 +33,19 @@ internal unsafe class CostumeGmdHook
         IBgmeApi bgme,
         IP5RLib p5RLib,
         Config config,
-        CostumeRegistry costumes)
+        CostumeRegistry costumes,
+        EquippedItemHook equippedItemHook)
     {
         this.bgme = bgme;
         this.p5rLib = p5RLib;
         this.config = config;
         this.costumes = costumes;
+        this.equippedItemHook = equippedItemHook;
 
         this.gmdFileStrPtr = (nint*)Marshal.AllocHGlobal(sizeof(nint));
         scanner.Scan("Load Costume GMD Function", "48 83 EC 38 8B 44 24 ?? 44 8B D2", result =>
         {
-            this.loadCostumeGmdHook = hooks.CreateHook<LoadCostumeGmdFunction>(this.LoadCostumeGmd, result).Activate();
+            this.loadAssetHook = hooks.CreateHook<LoadAssetHook>(this.LoadAssetImpl, result).Activate();
 
             var patch = new string[]
             {
@@ -64,12 +64,54 @@ internal unsafe class CostumeGmdHook
                 result + 0xDF,
                 AsmHookBehaviour.DoNotExecuteOriginal);
 
-            this.redirectGmdHook = new(redirectCostumeGmd1, redirectCostumeGmd2);
-            this.redirectGmdHook.Activate().Disable();
+            var redirectWeaponGmd = hooks.CreateAsmHook(
+                patch,
+                result + 0x2D6,
+                AsmHookBehaviour.DoNotExecuteOriginal);
+
+            this.loadAssetAsmHooks = new(redirectCostumeGmd1, redirectCostumeGmd2, redirectWeaponGmd);
+            this.loadAssetAsmHooks.Activate().Disable();
         });
     }
 
-    private void LoadCostumeGmd(nint param1, Character character, nint gmdId, nint param4, nint param5)
+    private void LoadAssetImpl(nint param1, int modelId, nint gmdId, nint param4, nint param5)
+    {
+        if (param5 == 1 || param5 == 4)
+        {
+            this.RedirectCostumeGmd(param1, (Character)modelId, gmdId, param4, param5);
+        }
+        else if (param5 == 14)
+        {
+            this.RedirectWeaponGmd(param1, modelId, (WeaponType)gmdId, param4, param5);
+        }
+        else
+        {
+            this.FreeAssetRedirect();
+        }
+
+        this.loadAssetHook?.OriginalFunction(param1, modelId, gmdId, param4, param5);
+        this.FreeAssetRedirect();
+    }
+
+    private void RedirectWeaponGmd(nint param1, int modelId, WeaponType weaponType, nint param4, nint param5)
+    {
+        var character = (Character)((modelId / 100 % 10) + 1);
+        var outfitItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
+        //var weaponItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Melee);
+
+        Log.Debug($"Weapon GMD: {param1} || {character} || {modelId} || {weaponType} || {param4} || {param5}");
+        if (this.costumes.TryGetModCostume(outfitItemId, out var costume))
+        {
+            if (costume.WeaponBindPath != null && weaponType == WeaponType.Melee)
+            {
+                this.SetAssetRedirect(costume.WeaponBindPath);
+                this.equippedItemHook.ForceUpdateCharEquip(costume.Character);
+                Log.Debug($"Weapon GMD redirected: {character} || {costume.WeaponBindPath}");
+            }
+        }
+    }
+
+    private void RedirectCostumeGmd(nint param1, Character character, nint gmdId, nint param4, nint param5)
     {
         var outfitItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
         var outfitId = this.GetOutfitId(outfitItemId);
@@ -77,7 +119,7 @@ internal unsafe class CostumeGmdHook
 
         if (Enum.IsDefined(character))
         {
-            Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
+            Log.Debug($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
             Log.Debug($"{character} || Item ID: {outfitItemId} || Outfit ID: {outfitId} || Outfit Set: {outfitSet}");
         }
         else
@@ -85,34 +127,36 @@ internal unsafe class CostumeGmdHook
             Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
         }
 
-        if (this.costumes.TryGetModCostume(outfitItemId, out var costume))
+        if (IsOutfitModelId((int)gmdId) && this.costumes.TryGetModCostume(outfitItemId, out var costume))
         {
-            this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(costume.GmdBindPath);
-            *this.gmdFileStrPtr = this.tempGmdStrPtr;
-
+            this.SetAssetRedirect(costume.GmdBindPath!);
             Log.Debug($"{character}: redirected {outfitSet} GMD to {costume.GmdBindPath}");
-            this.redirectGmdHook?.Enable();
         }
-        else
-        {
-            this.redirectGmdHook?.Disable();
-            if (this.tempGmdStrPtr != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(this.tempGmdStrPtr);
-            }
-
-            this.tempGmdStrPtr = 0;
-
-            if (character == Character.Joker && this.currentMusicFile != null)
-            {
-                this.bgme.RemovePath(this.currentMusicFile);
-                this.currentMusicFile = null;
-            }
-        }
-
-        this.CostumeChanged?.Invoke();
-        this.loadCostumeGmdHook?.OriginalFunction(param1, character, gmdId, param4, param5);
     }
+
+    private void SetAssetRedirect(string redirectPath)
+    {
+        this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(redirectPath);
+        *this.gmdFileStrPtr = this.tempGmdStrPtr;
+        this.loadAssetAsmHooks.Enable();
+    }
+
+    private void FreeAssetRedirect()
+    {
+        if (this.tempGmdStrPtr != IntPtr.Zero)
+        {
+            Marshal.FreeHGlobal(this.tempGmdStrPtr);
+        }
+
+        this.tempGmdStrPtr = 0;
+        this.loadAssetAsmHooks.Disable();
+    }
+
+    private bool IsOutfitModelId(int modelId)
+        => modelId == 51
+        || modelId == 52
+        || (modelId >= 151 && modelId < 200)
+        || this.config.OverworldCostumes;
 
     private int GetOutfitId(int itemId) => itemId - 0x7000;
 

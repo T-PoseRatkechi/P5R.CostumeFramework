@@ -2,5 +2,6 @@
 
 internal enum EquipSlot
 {
+    Melee = 0,
     Costume = 3,
 }

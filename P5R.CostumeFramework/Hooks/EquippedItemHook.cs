@@ -1,5 +1,6 @@
 ﻿using P5R.CostumeFramework.Costumes;
 using P5R.CostumeFramework.Models;
+using p5rpc.lib.interfaces;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.Enums;
 using Reloaded.Hooks.Definitions.X64;
@@ -24,16 +25,27 @@ internal class EquippedItemHook
     private delegate nint LoadSave(nint param1, nint param2, nint param3);
     private IHook<LoadSave>? loadSaveHook;
 
+    [Function(CallingConventions.Microsoft)]
+    private delegate int UpdateCharEquip(Character character, int equipType, nint param3, nint param4);
+    private IHook<UpdateCharEquip> updateCharHook;
+
+    [Function(CallingConventions.Microsoft)]
+    private delegate void UpdateCharEquipLive(nint partyPtr, Character character, nint param_3, nint param_4, nint param_5);
+    private IHook<UpdateCharEquipLive> updateCharHookLive;
+
     private readonly CostumeRegistry costumes;
     private readonly CostumeMusicService costumeMusic;
     private readonly Dictionary<Character, FakeOutfitItemId> previousOutfitIds = new();
+    private readonly IP5RLib p5rLib;
 
     public EquippedItemHook(
         IStartupScanner scanner,
         IReloadedHooks hooks,
+        IP5RLib p5rLib,
         CostumeRegistry costumes,
         CostumeMusicService costumeMusic)
     {
+        this.p5rLib = p5rLib;
         this.costumes = costumes;
         this.costumeMusic = costumeMusic;
         scanner.Scan("(GAP Fix) Get Outfit Item ID Hook", "B8 67 66 66 66 41 8D 90", result =>
@@ -75,6 +87,41 @@ internal class EquippedItemHook
         {
             this.loadSaveHook = hooks.CreateHook<LoadSave>(this.LoadSaveImpl, result).Activate();
         });
+
+        this.updateCharHook = hooks.CreateHook<UpdateCharEquip>(this.UpdateCharEquipImpl, 0x1416bdf90).Activate();
+        this.updateCharHookLive = hooks.CreateHook<UpdateCharEquipLive>(this.UpdateCharEquipLiveImpl, 0x1412adf90).Activate();
+    }
+
+    private Dictionary<Character, UpdateEquipParams> equipParams = new();
+
+    public void ForceUpdateCharEquip(Character character)
+    {
+        if (this.equipParams.TryGetValue(character, out var charParams))
+        {
+            Log.Debug("Force update.");
+            var currentEquip = this.p5rLib.GET_EQUIP(character, EquipSlot.Melee);
+            this.p5rLib.FlowCaller.SET_EQUIP((int)character, (int)EquipSlot.Melee, 249);
+            //this.UpdateCharEquipImpl(character, )
+            //this.UpdateCharEquipLiveImpl(charParams.Param1, character, charParams.Param3, charParams.Param4, charParams.Param5);
+            this.p5rLib.FlowCaller.SET_EQUIP((int)character, (int)EquipSlot.Melee, currentEquip);
+        }
+    }
+
+    private void UpdateCharEquipLiveImpl(nint partyPtr, Character character, nint param_3, nint param_4, nint param_5)
+    {
+        if (Enum.IsDefined(character) && !this.equipParams.ContainsKey(character))
+        {
+            this.equipParams[character] = new(partyPtr, param_3, param_4, param_5);
+        }
+
+        Log.Debug($"UpdateCharEquip: {partyPtr:X} || {character} || {param_3} || {param_4} || {param_5:X}");
+        this.updateCharHookLive.OriginalFunction(partyPtr, character, param_3, param_4, param_5);
+    }
+
+    public int UpdateCharEquipImpl(Character character, int equipType, nint param3, nint param4)
+    {
+        Log.Information($"Checking equip: {character} || {equipType} || {param3} || {param4}");
+        return this.updateCharHook.OriginalFunction(character, equipType, param3, param4);
     }
 
     /// <summary>
@@ -145,4 +192,6 @@ internal class EquippedItemHook
         => (currentSetId % 4) + VirtualOutfitsSection.GAME_OUTFIT_SETS + 1;
 
     private record FakeOutfitItemId(int OriginalId, int NewId);
+
+    private record UpdateEquipParams(nint Param1, nint Param3, nint Param4, nint Param5);
 }

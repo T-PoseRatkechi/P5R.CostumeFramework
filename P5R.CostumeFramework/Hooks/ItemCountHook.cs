@@ -1,4 +1,5 @@
-﻿using P5R.CostumeFramework.Costumes;
+﻿using P5R.CostumeFramework.Configuration;
+using P5R.CostumeFramework.Costumes;
 using P5R.CostumeFramework.Models;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.X64;
@@ -27,13 +28,16 @@ internal unsafe class ItemCountHook
     private delegate void SetItemCountFunction(int itemId, int itemCount, nint param3);
     private IHook<SetItemCountFunction>? setItemCountHook;
 
+    private readonly Config config;
     private readonly CostumeRegistry costumes;
 
     public ItemCountHook(
         IStartupScanner scanner,
         IReloadedHooks hooks,
+        Config config,
         CostumeRegistry costumes)
     {
+        this.config = config;
         this.costumes = costumes;
 
         scanner.Scan("Get Item Count Hook", "84 C0 0F 84 ?? ?? ?? ?? 0F B7 FB C1 EF 0C", result =>
@@ -71,6 +75,11 @@ internal unsafe class ItemCountHook
 
     private int GetItemCount(int itemId, int itemCount)
     {
+        if (this.config.UnlockAllItems)
+        {
+            return 1;
+        }
+
         if (VirtualOutfitsSection.IsModOutfit(itemId)
             || IsBonusTweaksOutfit(itemId))
         {

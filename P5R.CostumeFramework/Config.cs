@@ -10,8 +10,18 @@ public class Config : Configurable<Config>
     public LogLevel LogLevel { get; set; } = LogLevel.Information;
 
     [DisplayName("Randomize Costumes")]
+    [Description("Costume will randomize when moving between areas.")]
     [DefaultValue(false)]
     public bool RandomizeCostumes { get; set; } = false;
+
+    [DisplayName("Overworld Costumes")]
+    [Description("Costumes will apply in the overworld too.\nThis is just a for fun feature, expect some non-game breaking visual bugs.")]
+    [DefaultValue(false)]
+    public bool OverworldCostumes { get; set; } = false;
+
+    [DisplayName("(Debug) Unlock All Items")]
+    [DefaultValue(false)]
+    public bool UnlockAllItems { get; set; } = false;
 }
 
 /// <summary>

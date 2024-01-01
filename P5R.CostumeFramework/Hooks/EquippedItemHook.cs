@@ -88,8 +88,8 @@ internal class EquippedItemHook
             this.loadSaveHook = hooks.CreateHook<LoadSave>(this.LoadSaveImpl, result).Activate();
         });
 
-        this.updateCharHook = hooks.CreateHook<UpdateCharEquip>(this.UpdateCharEquipImpl, 0x1416bdf90).Activate();
-        this.updateCharHookLive = hooks.CreateHook<UpdateCharEquipLive>(this.UpdateCharEquipLiveImpl, 0x1412adf90).Activate();
+        //this.updateCharHook = hooks.CreateHook<UpdateCharEquip>(this.UpdateCharEquipImpl, 0x1416bdf90).Activate();
+        //this.updateCharHookLive = hooks.CreateHook<UpdateCharEquipLive>(this.UpdateCharEquipLiveImpl, 0x1412adf90).Activate();
     }
 
     private Dictionary<Character, UpdateEquipParams> equipParams = new();

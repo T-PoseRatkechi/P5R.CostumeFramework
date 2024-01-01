@@ -38,14 +38,14 @@ internal unsafe class CostumeService
         this.modLoader.GetController<IBattleThemesApi>().TryGetTarget(out this.battleThemes!);
 
         var costumes = new CostumeRegistry(modLoader);
-        this.costumeGmdHook = new(scanner, hooks, bgme, p5rLib, config, costumes);
         this.outfitsHook = new(scanner, hooks);
         this.nameDescriptionHook = new(scanner, hooks, costumes);
-        this.itemCountHook = new(scanner, hooks, costumes);
+        this.itemCountHook = new(scanner, hooks, config, costumes);
         this.goodbyeHook = new(scanner, hooks, p5rLib, costumes);
         this.emtGapHook = new(scanner, hooks, p5rLib);
         this.costumeMusic = new(bgme, battleThemes, p5rLib, costumes);
         this.fieldChangeHook = new(scanner, hooks, p5rLib, config, costumes, this.costumeMusic);
-        this.equippedItemHook = new(scanner, hooks, costumes, this.costumeMusic);
+        this.equippedItemHook = new(scanner, hooks, p5rLib, costumes, this.costumeMusic);
+        this.costumeGmdHook = new(scanner, hooks, bgme, p5rLib, config, costumes, equippedItemHook);
     }
 }

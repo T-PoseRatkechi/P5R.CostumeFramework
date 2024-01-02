@@ -27,6 +27,8 @@ internal unsafe class CostumeService
     private readonly FieldChangeHook fieldChangeHook;
     private readonly CostumeMusicService costumeMusic;
 
+    private readonly List<IGameHook> gameHooks = new();
+
     public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
         this.modLoader = modLoader;
@@ -38,6 +40,12 @@ internal unsafe class CostumeService
         this.modLoader.GetController<IBattleThemesApi>().TryGetTarget(out this.battleThemes!);
 
         var costumes = new CostumeRegistry(modLoader);
+        this.gameHooks.Add(new CostumeTexturesHook(p5rLib, costumes));
+        foreach (var hook in this.gameHooks)
+        {
+            hook.Initialize(scanner, hooks);
+        }
+
         this.outfitsHook = new(scanner, hooks);
         this.nameDescriptionHook = new(scanner, hooks, costumes);
         this.itemCountHook = new(scanner, hooks, config, costumes);

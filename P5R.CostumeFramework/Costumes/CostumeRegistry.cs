@@ -60,6 +60,7 @@ internal class CostumeRegistry
         var costumes = this.costumes
             .Where(x => x.Character == character)
             .Where(x => x.GmdBindPath != null).ToArray();
+
         if (costumes.Length < 1)
         {
             return null;

@@ -113,7 +113,7 @@ internal class CostumeFactory
 
     private void AddGoodbye(Costume costume, string modDir)
     {
-        var goodbyeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "goodbye.bcd");
+        var goodbyeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "aoa_goodbye.bcd");
         if (File.Exists(goodbyeFile))
         {
             costume.GoodbyeBindPath = Path.GetRelativePath(modDir, goodbyeFile);
@@ -123,7 +123,7 @@ internal class CostumeFactory
 
     private void AddCutin(Costume costume, string modDir)
     {
-        var cutinFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), $"cutin.dds");
+        var cutinFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), $"battle_cutin.dds");
         if (File.Exists(cutinFile))
         {
             costume.CutinBindPath = Path.GetRelativePath(modDir, cutinFile);
@@ -133,7 +133,7 @@ internal class CostumeFactory
 
     private void AddGui(Costume costume, string modDir)
     {
-        var guiFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), $"gui.dds");
+        var guiFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), $"aoa_portrait.dds");
         if (File.Exists(guiFile))
         {
             costume.GuiBindFile = Path.GetRelativePath(modDir, guiFile);

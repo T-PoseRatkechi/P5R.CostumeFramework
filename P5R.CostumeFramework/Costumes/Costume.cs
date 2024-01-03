@@ -14,7 +14,9 @@ internal class Costume
 
     public int ItemId { get; }
 
-    public string Name { get; set; } = "MISSING NAME";
+    public string? Name { get; set; }
+
+    public CostumeConfig Config { get; set; } = new();
 
     public string? OwnerModId { get; set; }
 
@@ -39,7 +41,7 @@ internal class Costume
     public string? CutinBindPath { get; set; }
 
     /// <summary>
-    /// Battle GUI character portrait.
+    /// AOA portrait.
     /// </summary>
     public string? GuiBindFile { get; set; }
 

@@ -1,6 +1,8 @@
 ﻿using AtlusScriptLibrary.MessageScriptLanguage.Compiler;
 using CriFs.V2.Hook.Interfaces;
 using P5R.CostumeFramework.Models;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace P5R.CostumeFramework.Costumes;
 
@@ -9,6 +11,10 @@ internal class CostumeFactory
     private readonly ICriFsRedirectorApi criFsApi;
     private readonly MessageScriptCompiler compiler;
     private readonly GameCostumes costumes;
+
+    private readonly IDeserializer deserializer = new DeserializerBuilder()
+        .WithNamingConvention(UnderscoredNamingConvention.Instance)
+        .Build();
 
     public CostumeFactory(
         ICriFsRedirectorApi criFsApi,
@@ -63,6 +69,7 @@ internal class CostumeFactory
 
     private void AddCostumeFiles(Costume costume, string modDir)
     {
+        this.LoadConfig(costume, modDir);
         this.AddDescription(costume, modDir);
         this.AddMusic(costume, modDir);
         this.AddGoodbye(costume, modDir);
@@ -76,6 +83,23 @@ internal class CostumeFactory
         costume.GmdFilePath = gmdFile;
         costume.GmdBindPath = Path.GetRelativePath(modDir, gmdFile);
         this.criFsApi.AddBind(costume.GmdFilePath, costume.GmdBindPath, "Costume Framework");
+    }
+
+    private void LoadConfig(Costume costume, string modDir)
+    {
+        var configFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "config.yaml");
+        if (File.Exists(configFile))
+        {
+            try
+            {
+                var config = this.deserializer.Deserialize<CostumeConfig>(File.ReadAllText(configFile)) ?? new();
+                costume.Config = config;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Failed to load costume config for: {costume.Name}\nFile: {configFile}");
+            }
+        }
     }
 
     private void AddDescription(Costume costume, string modDir)
@@ -123,7 +147,7 @@ internal class CostumeFactory
 
     private void AddCutin(Costume costume, string modDir)
     {
-        var cutinFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), $"battle_cutin.dds");
+        var cutinFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "battle_cutin.dds");
         if (File.Exists(cutinFile))
         {
             costume.CutinBindPath = Path.GetRelativePath(modDir, cutinFile);
@@ -133,7 +157,7 @@ internal class CostumeFactory
 
     private void AddGui(Costume costume, string modDir)
     {
-        var guiFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), $"aoa_portrait.dds");
+        var guiFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "aoa_portrait.dds");
         if (File.Exists(guiFile))
         {
             costume.GuiBindFile = Path.GetRelativePath(modDir, guiFile);
@@ -143,7 +167,7 @@ internal class CostumeFactory
 
     private void AddWeapons(Costume costume, string modDir)
     {
-        var weaponFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), $"melee_weapon.gmd");
+        var weaponFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "melee_weapon.gmd");
         if (File.Exists(weaponFile))
         {
             costume.WeaponBindPath = Path.GetRelativePath(modDir, weaponFile);

@@ -1,5 +1,6 @@
 ﻿using BGME.BattleThemes.Interfaces;
 using BGME.Framework.Interfaces;
+using P5R.CostumeFramework.Characters;
 using P5R.CostumeFramework.Configuration;
 using P5R.CostumeFramework.Costumes;
 using P5R.CostumeFramework.Hooks;
@@ -39,8 +40,11 @@ internal unsafe class CostumeService
         this.modLoader.GetController<IP5RLib>().TryGetTarget(out this.p5rLib!);
         this.modLoader.GetController<IBattleThemesApi>().TryGetTarget(out this.battleThemes!);
 
-        var costumes = new CostumeRegistry(modLoader);
-        this.gameHooks.Add(new CostumeTexturesHook(p5rLib, costumes));
+        var assetSettings = new CharacterAssetsSettings(config);
+        CharacterAssetsLoader.Init(modLoader, assetSettings);
+
+        var costumes = new CostumeRegistry(modLoader, assetSettings);
+        this.gameHooks.Add(new CharacterAssetsHook(p5rLib, costumes));
         foreach (var hook in this.gameHooks)
         {
             hook.Initialize(scanner, hooks);

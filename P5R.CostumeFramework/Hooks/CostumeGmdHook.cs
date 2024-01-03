@@ -100,7 +100,7 @@ internal unsafe class CostumeGmdHook
         //var weaponItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Melee);
 
         Log.Debug($"Weapon GMD: {param1} || {character} || {modelId} || {weaponType} || {param4} || {param5}");
-        if (this.costumes.TryGetModCostume(outfitItemId, out var costume))
+        if (this.costumes.TryGetCostume(outfitItemId, out var costume))
         {
             if (costume.WeaponBindPath != null && weaponType == WeaponType.Melee)
             {
@@ -127,9 +127,11 @@ internal unsafe class CostumeGmdHook
             Log.Verbose($"GMD: {param1} || {character} || {gmdId} || {param4} || {param5}");
         }
 
-        if (IsOutfitModelId((int)gmdId) && this.costumes.TryGetModCostume(outfitItemId, out var costume))
+        if (IsOutfitModelId((int)gmdId)
+            && this.costumes.TryGetCostume(outfitItemId, out var costume)
+            && costume.GmdBindPath != null)
         {
-            this.SetAssetRedirect(costume.GmdBindPath!);
+            this.SetAssetRedirect(costume.GmdBindPath);
             Log.Debug($"{character}: redirected {outfitSet} GMD to {costume.GmdBindPath}");
         }
     }

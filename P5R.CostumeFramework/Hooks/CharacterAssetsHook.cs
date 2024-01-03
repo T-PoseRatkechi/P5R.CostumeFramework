@@ -22,8 +22,6 @@ internal class CharacterAssetsHook : IGameHook
     private readonly IP5RLib p5rLib;
     private readonly CostumeRegistry costumes;
 
-    private readonly CachedStringsPtrs cache = new();
-
     public CharacterAssetsHook(IP5RLib p5rLib, CostumeRegistry costumes)
     {
         this.p5rLib = p5rLib;
@@ -101,7 +99,7 @@ internal class CharacterAssetsHook : IGameHook
         if (redirectPath != null)
         {
             Log.Debug($"Character asset redirected: {character} || {type} || {redirectPath}");
-            return this.cache.GetStringPtr(redirectPath);
+            return StringsCache.GetStringPtr(redirectPath);
         }
 
         return IntPtr.Zero;

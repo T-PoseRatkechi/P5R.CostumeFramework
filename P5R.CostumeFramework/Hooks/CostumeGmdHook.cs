@@ -86,11 +86,11 @@ internal unsafe class CostumeGmdHook
         }
         else
         {
-            this.FreeAssetRedirect();
+            this.ClearAssetRedirect();
         }
 
         this.loadAssetHook?.OriginalFunction(param1, modelId, gmdId, param4, param5);
-        this.FreeAssetRedirect();
+        this.ClearAssetRedirect();
     }
 
     private void RedirectWeaponGmd(nint param1, int modelId, WeaponType weaponType, nint param4, nint param5)
@@ -138,18 +138,13 @@ internal unsafe class CostumeGmdHook
 
     private void SetAssetRedirect(string redirectPath)
     {
-        this.tempGmdStrPtr = Marshal.StringToHGlobalAnsi(redirectPath);
+        this.tempGmdStrPtr = StringsCache.GetStringPtr(redirectPath);
         *this.gmdFileStrPtr = this.tempGmdStrPtr;
         this.loadAssetAsmHooks.Enable();
     }
 
-    private void FreeAssetRedirect()
+    private void ClearAssetRedirect()
     {
-        if (this.tempGmdStrPtr != IntPtr.Zero)
-        {
-            Marshal.FreeHGlobal(this.tempGmdStrPtr);
-        }
-
         this.tempGmdStrPtr = 0;
         this.loadAssetAsmHooks.Disable();
     }

@@ -64,7 +64,7 @@ internal class GoodbyeHook
             }
             else
             {
-                var ptr = Marshal.StringToHGlobalAnsi(costume.GoodbyeBindPath);
+                var ptr = StringsCache.GetStringPtr(costume.GoodbyeBindPath);
                 this.goodbyeCache[outfitItemId] = ptr;
                 return ptr;
             }

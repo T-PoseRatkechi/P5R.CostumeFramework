@@ -33,7 +33,6 @@ internal unsafe class ItemNameDescriptionHook
     private IHook<InitializeBmdFunction> initalizeBmdHook;
 
     private readonly CostumeRegistry costumes;
-    private readonly Dictionary<string, nint> namesCache = new();
     private readonly Dictionary<int, nint> descriptionsCache = new();
     private int displayCostumeId;
 
@@ -45,7 +44,7 @@ internal unsafe class ItemNameDescriptionHook
         CostumeRegistry costumes)
     {
         this.costumes = costumes;
-        this.fallbackNameStrPtr = Marshal.StringToHGlobalAnsi("UNUSED (Equipping will break game!)");
+        this.fallbackNameStrPtr = StringsCache.GetStringPtr("UNUSED (Equipping will break game!)");
 
         scanner.Scan("Get Item Name Function", "B8 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC 4C 8B DC 48 83 EC 78", result =>
         {
@@ -95,19 +94,18 @@ internal unsafe class ItemNameDescriptionHook
 
     private nint GetItemName(int itemId)
     {
-        if (VirtualOutfitsSection.IsModOutfit(itemId))
+        if (VirtualOutfitsSection.IsOutfit(itemId))
         {
-            if (this.costumes.TryGetCostume(itemId, out var costume)
-                && costume.Name != null)
+            if (this.costumes.TryGetCostume(itemId, out var costume))
             {
-                if (this.namesCache.TryGetValue(costume.Name, out var strPtr))
+                if (costume.Config.Name != null)
                 {
-                    return strPtr;
+                    return StringsCache.GetStringPtr(costume.Config.Name);
                 }
-                else
+
+                if (costume.Name != null)
                 {
-                    this.namesCache[costume.Name] = Marshal.StringToHGlobalAnsi(costume.Name);
-                    return this.namesCache[costume.Name];
+                    return StringsCache.GetStringPtr(costume.Name);
                 }
             }
 

@@ -25,14 +25,6 @@ internal class EquippedItemHook
     private delegate nint LoadSave(nint param1, nint param2, nint param3);
     private IHook<LoadSave>? loadSaveHook;
 
-    [Function(CallingConventions.Microsoft)]
-    private delegate int UpdateCharEquip(Character character, int equipType, nint param3, nint param4);
-    private IHook<UpdateCharEquip> updateCharHook;
-
-    [Function(CallingConventions.Microsoft)]
-    private delegate void UpdateCharEquipLive(nint partyPtr, Character character, nint param_3, nint param_4, nint param_5);
-    private IHook<UpdateCharEquipLive> updateCharHookLive;
-
     private readonly CostumeRegistry costumes;
     private readonly CostumeMusicService costumeMusic;
     private readonly Dictionary<Character, FakeOutfitItemId> previousOutfitIds = new();
@@ -87,41 +79,6 @@ internal class EquippedItemHook
         {
             this.loadSaveHook = hooks.CreateHook<LoadSave>(this.LoadSaveImpl, result).Activate();
         });
-
-        //this.updateCharHook = hooks.CreateHook<UpdateCharEquip>(this.UpdateCharEquipImpl, 0x1416bdf90).Activate();
-        //this.updateCharHookLive = hooks.CreateHook<UpdateCharEquipLive>(this.UpdateCharEquipLiveImpl, 0x1412adf90).Activate();
-    }
-
-    private Dictionary<Character, UpdateEquipParams> equipParams = new();
-
-    public void ForceUpdateCharEquip(Character character)
-    {
-        if (this.equipParams.TryGetValue(character, out var charParams))
-        {
-            Log.Debug("Force update.");
-            var currentEquip = this.p5rLib.GET_EQUIP(character, EquipSlot.Melee);
-            this.p5rLib.FlowCaller.SET_EQUIP((int)character, (int)EquipSlot.Melee, 249);
-            //this.UpdateCharEquipImpl(character, )
-            //this.UpdateCharEquipLiveImpl(charParams.Param1, character, charParams.Param3, charParams.Param4, charParams.Param5);
-            this.p5rLib.FlowCaller.SET_EQUIP((int)character, (int)EquipSlot.Melee, currentEquip);
-        }
-    }
-
-    private void UpdateCharEquipLiveImpl(nint partyPtr, Character character, nint param_3, nint param_4, nint param_5)
-    {
-        if (Enum.IsDefined(character) && !this.equipParams.ContainsKey(character))
-        {
-            this.equipParams[character] = new(partyPtr, param_3, param_4, param_5);
-        }
-
-        Log.Debug($"UpdateCharEquip: {partyPtr:X} || {character} || {param_3} || {param_4} || {param_5:X}");
-        this.updateCharHookLive.OriginalFunction(partyPtr, character, param_3, param_4, param_5);
-    }
-
-    public int UpdateCharEquipImpl(Character character, int equipType, nint param3, nint param4)
-    {
-        Log.Information($"Checking equip: {character} || {equipType} || {param3} || {param4}");
-        return this.updateCharHook.OriginalFunction(character, equipType, param3, param4);
     }
 
     /// <summary>
@@ -130,7 +87,8 @@ internal class EquippedItemHook
     /// </summary>
     private int GetOutfitItemIdImpl(ushort currentOutfitItemId)
     {
-        if (this.costumes.TryGetModCostume(currentOutfitItemId, out var costume))
+        if (VirtualOutfitsSection.IsModOutfit(currentOutfitItemId)
+            && this.costumes.TryGetCostume(currentOutfitItemId, out var costume))
         {
             if (this.previousOutfitIds.TryGetValue(costume.Character, out var fakeOutfitId))
             {
@@ -171,6 +129,7 @@ internal class EquippedItemHook
     private nint LoadSaveImpl(nint param1, nint param2, nint param3)
     {
         var result = this.loadSaveHook!.OriginalFunction(param1, param2, param3);
+        this.FixInvalidCostumes();
         this.costumeMusic.Refresh();
         return result;
     }
@@ -186,6 +145,19 @@ internal class EquippedItemHook
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Fix any invalid equipped outfits, which can cause missing file errors or
+    /// visual glitches.
+    /// </summary>
+    private void FixInvalidCostumes()
+    {
+        foreach (var character in Enum.GetValues<Character>())
+        {
+            var outfitItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
+            this.p5rLib.SET_EQUIP(character, EquipSlot.Costume, this.costumes.ToValidCostumeItemId(character, outfitItemId));
+        }
     }
 
     private static int GetNewSetId(int currentSetId)

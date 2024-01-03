@@ -15,7 +15,19 @@ internal class GameCostumes : IReadOnlyCollection<Costume>
             foreach (var character in characters)
             {
                 var itemId = 0x7010 + (currentSet * 10) + (int)character - 1;
-                this.costumes.Add(new(character, itemId));
+                var costume = new Costume(character, itemId);
+
+                if (currentSet < VirtualOutfitsSection.GAME_OUTFIT_SETS)
+                {
+                    costume.IsEnabled = true;
+                }
+                
+                if (currentSet == 0)
+                {
+                    costume.Config.IsDefault = true;
+                }
+
+                this.costumes.Add(costume);
             }
         }
     }

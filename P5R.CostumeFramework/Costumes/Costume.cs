@@ -14,6 +14,8 @@ internal class Costume
 
     public int ItemId { get; }
 
+    public bool IsEnabled { get; set; }
+
     public string? Name { get; set; }
 
     public CostumeConfig Config { get; set; } = new();

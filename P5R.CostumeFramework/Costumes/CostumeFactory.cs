@@ -37,6 +37,7 @@ internal class CostumeFactory
 
         costume.Name = Path.GetFileNameWithoutExtension(gmdFile);
         costume.OwnerModId = modId;
+        costume.IsEnabled = true;
         this.AddGmdFile(costume, gmdFile, modDir);
         this.AddCostumeFiles(costume, modDir);
 
@@ -54,7 +55,7 @@ internal class CostumeFactory
         }
 
         costume.Name = name;
-        costume.GmdFilePath = string.Empty;
+        costume.IsEnabled = true;
         costume.GmdBindPath = bindPath;
         //this.AddCostumeFiles(costume, modDir);
         Log.Information($"Costume created: {costume.Character} || Item ID: {costume.ItemId} || Bind: {costume.GmdBindPath}");

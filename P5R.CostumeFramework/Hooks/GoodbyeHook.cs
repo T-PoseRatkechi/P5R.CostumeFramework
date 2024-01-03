@@ -55,20 +55,18 @@ internal class GoodbyeHook
         Log.Debug($"Getting Goodbye BMD for: {character}");
 
         var outfitItemId = this.p5rLib.FlowCaller.GET_EQUIP((int)character, (int)EquipSlot.Costume);
-        if (this.costumes.TryGetModCostume(outfitItemId, out var costume))
+        if (this.costumes.TryGetCostume(outfitItemId, out var costume)
+            && costume.GoodbyeBindPath != null)
         {
-            if (costume.GoodbyeBindPath != null)
+            if (this.goodbyeCache.TryGetValue(outfitItemId, out var cachedPtr))
             {
-                if (this.goodbyeCache.TryGetValue(outfitItemId, out var cachedPtr))
-                {
-                    return cachedPtr;
-                }
-                else
-                {
-                    var ptr = Marshal.StringToHGlobalAnsi(costume.GoodbyeBindPath);
-                    this.goodbyeCache[outfitItemId] = ptr;
-                    return ptr;
-                }
+                return cachedPtr;
+            }
+            else
+            {
+                var ptr = Marshal.StringToHGlobalAnsi(costume.GoodbyeBindPath);
+                this.goodbyeCache[outfitItemId] = ptr;
+                return ptr;
             }
         }
 

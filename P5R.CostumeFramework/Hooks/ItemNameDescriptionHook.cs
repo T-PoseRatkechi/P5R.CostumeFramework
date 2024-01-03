@@ -97,7 +97,8 @@ internal unsafe class ItemNameDescriptionHook
     {
         if (VirtualOutfitsSection.IsModOutfit(itemId))
         {
-            if (this.costumes.TryGetModCostume(itemId, out var costume))
+            if (this.costumes.TryGetCostume(itemId, out var costume)
+                && costume.Name != null)
             {
                 if (this.namesCache.TryGetValue(costume.Name, out var strPtr))
                 {
@@ -141,7 +142,7 @@ internal unsafe class ItemNameDescriptionHook
             this.displayCostumeId = itemId;
 
             // Initialize and cache the costume description if exists.
-            if (this.costumes.TryGetModCostume(itemId, out var costume)
+            if (this.costumes.TryGetCostume(itemId, out var costume)
                 && costume.DescriptionMessageBinary != null)
             {
                 if (!this.descriptionsCache.ContainsKey(itemId))

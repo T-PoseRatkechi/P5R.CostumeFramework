@@ -63,8 +63,8 @@ internal unsafe class ItemCountHook
     {
         if (VirtualOutfitsSection.IsModOutfit(itemId))
         {
-            Log.Debug($"SetItemCount || Item ID: {itemId} || Count: {itemCount} || param3: {param3}");
-            Log.Debug("Ignoring SetItemCount for mod costume.");
+            Log.Verbose($"SetItemCount || Item ID: {itemId} || Count: {itemCount} || param3: {param3}");
+            Log.Verbose("Ignoring SetItemCount for mod costume.");
         }
         else
         {
@@ -80,10 +80,10 @@ internal unsafe class ItemCountHook
             return 1;
         }
 
-        if (VirtualOutfitsSection.IsModOutfit(itemId)
+        if (VirtualOutfitsSection.IsOutfit(itemId)
             || IsBonusTweaksOutfit(itemId))
         {
-            if (this.costumes.IsActiveModCostume(itemId))
+            if (this.costumes.IsActiveCostume(itemId))
             {
                 Log.Verbose($"GetItemCount || Item ID: {itemId} || Count: {itemCount} || Overwriting costume count with 1.");
                 return 1;

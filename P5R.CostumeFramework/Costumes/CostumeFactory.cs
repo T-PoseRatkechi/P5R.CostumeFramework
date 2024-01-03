@@ -36,10 +36,9 @@ internal class CostumeFactory
         }
 
         costume.Name = Path.GetFileNameWithoutExtension(gmdFile);
-        costume.OwnerModId = modId;
         costume.IsEnabled = true;
         this.AddGmdFile(costume, gmdFile, modDir);
-        this.AddCostumeFiles(costume, modDir);
+        this.AddCostumeFiles(costume, modDir, modId);
 
         Log.Information($"Costume created: {costume.Character} || Item ID: {costume.ItemId} || Bind: {costume.GmdBindPath}");
         return costume;
@@ -68,11 +67,12 @@ internal class CostumeFactory
         return this.CreateFromExisting(character, name, bindPath);
     }
 
-    private void AddCostumeFiles(Costume costume, string modDir)
+    public void AddCostumeFiles(Costume costume, string modDir, string modId)
     {
         this.LoadConfig(costume, modDir);
+        this.AddGmdFile(costume, modDir);
         this.AddDescription(costume, modDir);
-        this.AddMusic(costume, modDir);
+        this.AddMusic(costume, modDir, modId);
         this.AddGoodbye(costume, modDir);
         this.AddCutin(costume, modDir);
         this.AddGui(costume, modDir);
@@ -83,7 +83,21 @@ internal class CostumeFactory
     {
         costume.GmdFilePath = gmdFile;
         costume.GmdBindPath = Path.GetRelativePath(modDir, gmdFile);
+        costume.IsEnabled = true;
         this.criFsApi.AddBind(costume.GmdFilePath, costume.GmdBindPath, "Costume Framework");
+    }
+
+    /// <summary>
+    /// Adds a costume GMD from the costume folder.
+    /// Mostly useful for overriding and enabling existing costumes.
+    /// </summary>
+    private void AddGmdFile(Costume costume, string modDir)
+    {
+        var costumeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "costume.gmd");
+        if (File.Exists(costumeFile))
+        {
+            this.AddGmdFile(costume, costumeFile, modDir);
+        }
     }
 
     private void LoadConfig(Costume costume, string modDir)
@@ -121,7 +135,7 @@ internal class CostumeFactory
         }
     }
 
-    private void AddMusic(Costume costume, string modDir)
+    private void AddMusic(Costume costume, string modDir, string modId)
     {
         var musicFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "music.pme");
         if (File.Exists(musicFile))
@@ -132,6 +146,7 @@ internal class CostumeFactory
         var battleThemeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "battle.theme.pme");
         if (File.Exists(battleThemeFile))
         {
+            costume.OwnerModId = modId;
             costume.BattleThemeFile = battleThemeFile;
         }
     }
@@ -179,13 +194,10 @@ internal class CostumeFactory
     private string GetCostumeFilesDir(Costume costume, string modDir)
         => Path.Join(modDir, "costumes", costume.Character.ToString(), costume.Name);
 
-    private string GetCharacterDir(Costume costume, string modDir)
-        => Path.Join(modDir, "costumes", costume.Character.ToString());
-
     private Costume? GetAvailableModCostume(Character character)
         => this.costumes
         .FirstOrDefault(x =>
         x.Character == character
         && VirtualOutfitsSection.IsModOutfit(x.ItemId)
-        && x.GmdFilePath == null);
+        && x.GmdBindPath == null);
 }

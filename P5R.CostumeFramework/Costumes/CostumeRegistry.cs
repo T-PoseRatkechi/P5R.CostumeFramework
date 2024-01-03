@@ -157,6 +157,13 @@ internal class CostumeRegistry
                 continue;
             }
 
+            // Add costume files for existing costumes.
+            foreach (var costume in this.costumes.Where(x => x.Character == character && x.Name != null))
+            {
+                this.costumeFactory.AddCostumeFiles(costume, modDir, config.ModId);
+            }
+
+            // Build new costumes from GMD files.
             foreach (var file in Directory.EnumerateFiles(characterDir, "*.gmd", SearchOption.TopDirectoryOnly))
             {
                 this.costumeFactory.Create(config.ModId, modDir, character, file);

@@ -8,7 +8,7 @@ using static Reloaded.Hooks.Definitions.X64.FunctionAttribute;
 
 namespace P5R.CostumeFramework.Hooks;
 
-internal class CostumeTexturesHook : IGameHook
+internal class CharacterAssetsHook : IGameHook
 {
     [Function(Register.r8, Register.rax, true)]
     private delegate nint RedirectCharAsset(Character character);
@@ -24,7 +24,7 @@ internal class CostumeTexturesHook : IGameHook
 
     private readonly CachedStringsPtrs cache = new();
 
-    public CostumeTexturesHook(IP5RLib p5rLib, CostumeRegistry costumes)
+    public CharacterAssetsHook(IP5RLib p5rLib, CostumeRegistry costumes)
     {
         this.p5rLib = p5rLib;
         this.costumes = costumes;
@@ -36,49 +36,47 @@ internal class CostumeTexturesHook : IGameHook
             "Costume GUI Hook",
             "48 8D 8D ?? ?? ?? ?? E8 ?? ?? ?? ?? BA 10 00 00 00 8D 4A ?? E8 ?? ?? ?? ?? 48 8B D8 48 8B 05 ?? ?? ?? ?? 48 85 C0 74 ?? BA 50 00 00 00",
             result =>
-        {
-            var patch = new string[]
             {
-                "use64",
-                Utilities.PushCallerRegisters,
-                hooks.Utilities.GetAbsoluteCallMnemonics((character) => this.RedirectCharAssetFile(character, AssetType.Gui), out this.setGuiWrapper),
-                Utilities.PopCallerRegisters,
-                "test rax, rax",
-                "jz original",
-                "mov rdx, rax",
-                "original:",
-            };
-
-            this.setGuiHook = hooks.CreateAsmHook(patch, result).Activate();
-        });
+                var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(character, AssetType.Gui), out this.setGuiWrapper);
+                this.setGuiHook = hooks.CreateAsmHook(patch, result).Activate();
+            });
 
         scanner.Scan(
             "Costume Cutin Hook",
             "E8 ?? ?? ?? ?? 48 8D 4C 24 ?? E8 ?? ?? ?? ?? 48 89 47 ?? C7 07 01 00 00 00",
             result =>
             {
-                var patch = new string[]
-                {
-                    "use64",
-                    Utilities.PushCallerRegisters,
-                    hooks.Utilities.GetAbsoluteCallMnemonics((character) => this.RedirectCharAssetFile(character, AssetType.Cutin), out this.setCutinWrapper),
-                    Utilities.PopCallerRegisters,
-                    "test rax, rax",
-                    "jz original",
-                    "mov rdx, rax",
-                    "original:",
-                };
-
+                var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(character, AssetType.Cutin), out this.setCutinWrapper);
                 this.setCutinHook = hooks.CreateAsmHook(patch, result).Activate();
             });
     }
 
+    private static string[] AssembleRedirectPatch(IReloadedHooks hooks, RedirectCharAsset func, out IReverseWrapper<RedirectCharAsset> wrapper)
+    {
+        return new string[]
+        {
+            "use64",
+            Utilities.PushCallerRegisters,
+            hooks.Utilities.GetAbsoluteCallMnemonics(func, out wrapper),
+            Utilities.PopCallerRegisters,
+            "test rax, rax",
+            "jz original",
+            "mov rdx, rax",
+            "original:",
+        };
+    }
+
     private nint RedirectCharAssetFile(Character character, AssetType type)
     {
+        if (!Enum.IsDefined(character))
+        {
+            return IntPtr.Zero;
+        }
+
         var currentOutfitId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
         string? redirectPath = null;
 
-        if (this.costumes.TryGetModCostume(currentOutfitId, out var costume))
+        if (this.costumes.TryGetCostume(currentOutfitId, out var costume))
         {
             switch (type)
             {
@@ -95,13 +93,14 @@ internal class CostumeTexturesHook : IGameHook
                     }
                     break;
                 default:
+                    Log.Error($"Unknown asset redirection value: {type}");
                     break;
             }
         }
 
         if (redirectPath != null)
         {
-            Log.Information($"Character asset redirected: {character} || {type} || {redirectPath}");
+            Log.Debug($"Character asset redirected: {character} || {type} || {redirectPath}");
             return this.cache.GetStringPtr(redirectPath);
         }
 

@@ -4,6 +4,8 @@ namespace P5R.CostumeFramework.Costumes;
 
 internal class Costume
 {
+    public const string DEFAULT_DESCRIPTION = "[f 0 5 65278][f 2 1]Outfit added with Costume Framework.[n][e]";
+
     public Costume(Character character, int itemId)
     {
         this.Character = character;
@@ -30,7 +32,7 @@ internal class Costume
 
     public string? BattleThemeFile { get; set; }
 
-    public byte[]? DescriptionMessageBinary { get; set; }
+    public string DescriptionMsg { get; set; } = DEFAULT_DESCRIPTION;
 
     /// <summary>
     /// AOA character animation ending.

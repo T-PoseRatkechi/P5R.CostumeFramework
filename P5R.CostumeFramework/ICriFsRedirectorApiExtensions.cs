@@ -21,6 +21,8 @@ internal static class ICriFsRedirectorApiExtensions
                     ModId = modId,
                 },
             };
+
+            Log.Verbose($"Bind: {bindPath}\nFile: {file}");
         });
     }
 }

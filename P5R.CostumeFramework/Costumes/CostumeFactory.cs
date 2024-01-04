@@ -69,7 +69,7 @@ internal class CostumeFactory
         this.AddGmdFile(costume, modDir);
         this.AddDescription(costume, modDir);
         this.AddMusic(costume, modDir, modId);
-        this.AddCharacterAssets(costume, modDir);
+        this.AddCostumeCharAssets(costume, modDir);
         this.AddCutin(costume, modDir);
         this.AddGui(costume, modDir);
         this.AddWeapons(costume, modDir);
@@ -89,7 +89,7 @@ internal class CostumeFactory
     /// </summary>
     private void AddGmdFile(Costume costume, string modDir)
     {
-        var costumeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "costume.gmd");
+        var costumeFile = Path.Join(this.GetCostumeDir(costume, modDir), "costume.gmd");
         if (File.Exists(costumeFile))
         {
             this.AddGmdFile(costume, costumeFile, modDir);
@@ -98,7 +98,7 @@ internal class CostumeFactory
 
     private void LoadConfig(Costume costume, string modDir)
     {
-        var configFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "config.yaml");
+        var configFile = Path.Join(this.GetCostumeDir(costume, modDir), "config.yaml");
         if (File.Exists(configFile))
         {
             try
@@ -115,7 +115,7 @@ internal class CostumeFactory
 
     private void AddDescription(Costume costume, string modDir)
     {
-        var descriptionFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "description.msg");
+        var descriptionFile = Path.Join(this.GetCostumeDir(costume, modDir), "description.msg");
         if (File.Exists(descriptionFile))
         {
             costume.DescriptionMsg = File.ReadAllText(descriptionFile);
@@ -124,13 +124,13 @@ internal class CostumeFactory
 
     private void AddMusic(Costume costume, string modDir, string modId)
     {
-        var musicFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "music.pme");
+        var musicFile = Path.Join(this.GetCostumeDir(costume, modDir), "music.pme");
         if (File.Exists(musicFile))
         {
             costume.MusicScriptFile = musicFile;
         }
 
-        var battleThemeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "battle.theme.pme");
+        var battleThemeFile = Path.Join(this.GetCostumeDir(costume, modDir), "battle.theme.pme");
         if (File.Exists(battleThemeFile))
         {
             costume.OwnerModId = modId;
@@ -138,26 +138,39 @@ internal class CostumeFactory
         }
     }
 
-    private void AddCharacterAssets(Costume costume, string modDir)
+    private void AddCostumeCharAssets(Costume costume, string modDir)
     {
-        var goodbyeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "aoa_goodbye.bcd");
+        var costumeDir = this.GetCostumeDir(costume, modDir);
+        var baseBindPath = Path.Join(costume.Character.ToString(), costume.Name);
+
+        // Bind costume files in the bind dir.
+        var costumeBindDir = Path.Join(costumeDir, "bind");
+        if (Directory.Exists(costumeBindDir))
+        {
+            foreach (var file in Directory.EnumerateFiles(costumeBindDir, "*", SearchOption.AllDirectories))
+            {
+                this.criFsApi.AddBind(file, Path.GetRelativePath(costumeBindDir, file), "Costume Framework");
+            }
+        }
+
+        var goodbyeFile = Path.Join(costumeDir, "aoa_goodbye.bcd");
         if (File.Exists(goodbyeFile))
         {
-            costume.GoodbyeBindPath = Path.GetRelativePath(modDir, goodbyeFile);
+            costume.GoodbyeBindPath = Path.Join(baseBindPath, Path.GetFileName(goodbyeFile));
             this.criFsApi.AddBind(goodbyeFile, costume.GoodbyeBindPath, "Costume Framework");
         }
 
-        var futabaSkillFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "futaba_skill.bcd");
+        var futabaSkillFile = Path.Join(costumeDir, "futaba_skill.bcd");
         if (File.Exists(futabaSkillFile))
         {
-            costume.FutabaSkillBind = Path.GetRelativePath(modDir, futabaSkillFile);
+            costume.FutabaSkillBind = Path.Join(baseBindPath, Path.GetFileName(futabaSkillFile));
             this.criFsApi.AddBind(futabaSkillFile, costume.FutabaSkillBind, "Costume Framework");
         }
     }
 
     private void AddCutin(Costume costume, string modDir)
     {
-        var cutinFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "battle_cutin.dds");
+        var cutinFile = Path.Join(this.GetCostumeDir(costume, modDir), "battle_cutin.dds");
         if (File.Exists(cutinFile))
         {
             costume.CutinBindPath = Path.GetRelativePath(modDir, cutinFile);
@@ -167,7 +180,7 @@ internal class CostumeFactory
 
     private void AddGui(Costume costume, string modDir)
     {
-        var guiFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "aoa_portrait.dds");
+        var guiFile = Path.Join(this.GetCostumeDir(costume, modDir), "aoa_portrait.dds");
         if (File.Exists(guiFile))
         {
             costume.GuiBindFile = Path.GetRelativePath(modDir, guiFile);
@@ -177,7 +190,7 @@ internal class CostumeFactory
 
     private void AddWeapons(Costume costume, string modDir)
     {
-        var weaponFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "melee_weapon.gmd");
+        var weaponFile = Path.Join(this.GetCostumeDir(costume, modDir), "melee_weapon.gmd");
         if (File.Exists(weaponFile))
         {
             costume.WeaponBindPath = Path.GetRelativePath(modDir, weaponFile);
@@ -185,7 +198,7 @@ internal class CostumeFactory
         }
     }
 
-    private string GetCostumeFilesDir(Costume costume, string modDir)
+    private string GetCostumeDir(Costume costume, string modDir)
         => Path.Join(modDir, "costumes", costume.Character.ToString(), costume.Name);
 
     private Costume? GetAvailableModCostume(Character character)

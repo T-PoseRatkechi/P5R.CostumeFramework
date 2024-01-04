@@ -1,8 +1,4 @@
-﻿using AtlusScriptLibrary.Common.Libraries;
-using AtlusScriptLibrary.Common.Text.Encodings;
-using AtlusScriptLibrary.MessageScriptLanguage;
-using AtlusScriptLibrary.MessageScriptLanguage.Compiler;
-using CriFs.V2.Hook.Interfaces;
+﻿using CriFs.V2.Hook.Interfaces;
 using P5R.CostumeFramework.Characters;
 using P5R.CostumeFramework.Models;
 using Reloaded.Mod.Interfaces;
@@ -18,7 +14,6 @@ internal class CostumeRegistry
     private readonly CostumeFactory costumeFactory;
     private readonly CharacterAssetsSettings assetSettings;
 
-    private readonly GameCostumes costumes = new();
     private readonly Dictionary<Character, Costume> randomizedCostumes;
 
     public CostumeRegistry(IModLoader modLoader, CharacterAssetsSettings assetSettings)
@@ -29,16 +24,7 @@ internal class CostumeRegistry
         this.modLoader.GetController<ICriFsRedirectorApi>().TryGetTarget(out criFsApi!);
         this.modLoader.ModLoading += this.OnModLoading;
 
-        var modDir = modLoader.GetDirectoryForModId("P5R.CostumeFramework");
-        AtlusEncoding.SetCharsetDirectory(Path.Join(modDir, "Charsets"));
-        LibraryLookup.SetLibraryPath(Path.Join(modDir, "Libraries"));
-        var compiler = new MessageScriptCompiler(FormatVersion.Version1BigEndian, AtlusEncoding.Persona5RoyalEFIGS)
-        {
-            Library = LibraryLookup.GetLibrary("p5r")
-        };
-
-        this.costumeFactory = new(criFsApi, compiler, this.costumes);
-
+        this.costumeFactory = new(criFsApi, this.CostumesList);
         this.randomizedCostumes = CostumeRegistryUtils.AddRandomizedCostumes(this.costumeFactory)
             .GroupBy(x => x.Character)
             .ToDictionary(x => x.Key, x => x.First());
@@ -46,12 +32,14 @@ internal class CostumeRegistry
         CostumeRegistryUtils.AddExistingCostumes(this.costumeFactory);
     }
 
+    public GameCostumes CostumesList { get; } = new();
+
     public Costume? GetCostumeById(int itemId)
-        => this.costumes.FirstOrDefault(x => x.ItemId == itemId);
+        => this.CostumesList.FirstOrDefault(x => x.ItemId == itemId);
 
     public bool TryGetCostume(int itemId, [NotNullWhen(true)] out Costume? costume)
     {
-        costume = this.costumes.FirstOrDefault(x => x.ItemId == itemId);
+        costume = this.CostumesList.FirstOrDefault(x => x.ItemId == itemId);
         if (costume != null && this.IsActiveCostume(costume))
         {
             return true;
@@ -67,7 +55,7 @@ internal class CostumeRegistry
             return false;
         }
 
-        if (this.costumes.FirstOrDefault(x => x.ItemId == itemId) is Costume costume)
+        if (this.CostumesList.FirstOrDefault(x => x.ItemId == itemId) is Costume costume)
         {
             return this.IsActiveCostume(costume);
         }
@@ -95,13 +83,13 @@ internal class CostumeRegistry
     {
         if (this.IsActiveCostume(itemId))
         {
-            Log.Debug($"Costume Valid: {character} || {itemId}");
+            Log.Debug($"Valid costume: {character} || {itemId}");
             return itemId;
         }
         else
         {
             // Current active costumes for character.
-            var activeCostumes = this.costumes.Where(x => x.Character == character && this.IsActiveCostume(x.ItemId)).ToArray();
+            var activeCostumes = this.CostumesList.Where(x => x.Character == character && this.IsActiveCostume(x.ItemId)).ToArray();
 
             // Use costume marked as default.
             if (activeCostumes.FirstOrDefault(x => x.Config.IsDefault == true) is Costume defaultCostume)
@@ -118,7 +106,7 @@ internal class CostumeRegistry
             }
 
             // Else fallback to game default costume.
-            var gameDefault = this.costumes.First(x => x.Character == character).ItemId;
+            var gameDefault = this.CostumesList.First(x => x.Character == character).ItemId;
             Log.Debug($"Using Game Default Costume: {character} || {gameDefault}");
             return gameDefault;
         }
@@ -126,7 +114,7 @@ internal class CostumeRegistry
 
     public Costume? GetRandomCostume(Character character)
     {
-        var costumes = this.costumes
+        var costumes = this.CostumesList
             .Where(x => x.Character == character)
             .Where(x => x.GmdBindPath != null).ToArray();
 
@@ -158,7 +146,7 @@ internal class CostumeRegistry
             }
 
             // Add costume files for existing costumes.
-            foreach (var costume in this.costumes.Where(x => x.Character == character && x.Name != null))
+            foreach (var costume in this.CostumesList.Where(x => x.Character == character && x.Name != null))
             {
                 this.costumeFactory.AddCostumeFiles(costume, modDir, config.ModId);
             }

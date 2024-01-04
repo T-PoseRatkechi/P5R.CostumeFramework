@@ -1,5 +1,4 @@
-﻿using AtlusScriptLibrary.MessageScriptLanguage.Compiler;
-using CriFs.V2.Hook.Interfaces;
+﻿using CriFs.V2.Hook.Interfaces;
 using P5R.CostumeFramework.Models;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -9,7 +8,6 @@ namespace P5R.CostumeFramework.Costumes;
 internal class CostumeFactory
 {
     private readonly ICriFsRedirectorApi criFsApi;
-    private readonly MessageScriptCompiler compiler;
     private readonly GameCostumes costumes;
 
     private readonly IDeserializer deserializer = new DeserializerBuilder()
@@ -18,11 +16,9 @@ internal class CostumeFactory
 
     public CostumeFactory(
         ICriFsRedirectorApi criFsApi,
-        MessageScriptCompiler compiler,
         GameCostumes costumes)
     {
         this.criFsApi = criFsApi;
-        this.compiler = compiler;
         this.costumes = costumes;
     }
 
@@ -122,16 +118,7 @@ internal class CostumeFactory
         var descriptionFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "description.msg");
         if (File.Exists(descriptionFile))
         {
-            if (compiler.TryCompile(File.ReadAllText(descriptionFile), out var messageScript))
-            {
-                using var ms = new MemoryStream();
-                messageScript.ToStream(ms, true);
-                costume.DescriptionMessageBinary = ms.ToArray();
-            }
-            else
-            {
-                Log.Warning($"Failed to compile costume description.\nFile: {descriptionFile}");
-            }
+            costume.DescriptionMsg = File.ReadAllText(descriptionFile);
         }
     }
 

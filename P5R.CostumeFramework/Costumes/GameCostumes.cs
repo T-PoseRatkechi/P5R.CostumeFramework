@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace P5R.CostumeFramework.Costumes;
 
-internal class GameCostumes : IReadOnlyCollection<Costume>
+internal class GameCostumes : IReadOnlyList<Costume>
 {
     private readonly List<Costume> costumes = new();
 
@@ -231,6 +231,8 @@ internal class GameCostumes : IReadOnlyCollection<Costume>
     }
 
     public int Count => this.costumes.Count;
+
+    public Costume this[int index] => this.costumes[index];
 
     public IEnumerator<Costume> GetEnumerator() => this.costumes.GetEnumerator();
 

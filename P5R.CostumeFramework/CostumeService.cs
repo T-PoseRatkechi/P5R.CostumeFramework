@@ -1,4 +1,8 @@
-﻿using BGME.BattleThemes.Interfaces;
+﻿using AtlusScriptLibrary.Common.Libraries;
+using AtlusScriptLibrary.Common.Text.Encodings;
+using AtlusScriptLibrary.MessageScriptLanguage;
+using AtlusScriptLibrary.MessageScriptLanguage.Compiler;
+using BGME.BattleThemes.Interfaces;
 using BGME.Framework.Interfaces;
 using P5R.CostumeFramework.Characters;
 using P5R.CostumeFramework.Configuration;
@@ -20,7 +24,6 @@ internal unsafe class CostumeService
 
     private readonly CostumeGmdHook costumeGmdHook;
     private readonly VirtualOutfitsHook outfitsHook;
-    private readonly ItemNameDescriptionHook nameDescriptionHook;
     private readonly ItemCountHook itemCountHook;
     private readonly GoodbyeHook goodbyeHook;
     private readonly EquippedItemHook equippedItemHook;
@@ -40,18 +43,29 @@ internal unsafe class CostumeService
         this.modLoader.GetController<IP5RLib>().TryGetTarget(out this.p5rLib!);
         this.modLoader.GetController<IBattleThemesApi>().TryGetTarget(out this.battleThemes!);
 
+        var modDir = modLoader.GetDirectoryForModId("P5R.CostumeFramework");
+
+        AtlusEncoding.SetCharsetDirectory(Path.Join(modDir, "Charsets"));
+        LibraryLookup.SetLibraryPath(Path.Join(modDir, "Libraries"));
+        var compiler = new MessageScriptCompiler(FormatVersion.Version1BigEndian, AtlusEncoding.Persona5RoyalEFIGS)
+        {
+            Library = LibraryLookup.GetLibrary("p5r")
+        };
+
         var assetSettings = new CharacterAssetsSettings(config);
         CharacterAssetsLoader.Init(modLoader, assetSettings);
 
         var costumes = new CostumeRegistry(modLoader, assetSettings);
+
+        this.gameHooks.Add(new ItemNameHook(costumes));
         this.gameHooks.Add(new CharacterAssetsHook(p5rLib, costumes));
+        this.gameHooks.Add(new OutfitDescriptionHook(modLoader, compiler, costumes));
         foreach (var hook in this.gameHooks)
         {
             hook.Initialize(scanner, hooks);
         }
 
         this.outfitsHook = new(scanner, hooks);
-        this.nameDescriptionHook = new(scanner, hooks, costumes);
         this.itemCountHook = new(scanner, hooks, config, costumes);
         this.goodbyeHook = new(scanner, hooks, p5rLib, costumes);
         this.emtGapHook = new(scanner, hooks, p5rLib);

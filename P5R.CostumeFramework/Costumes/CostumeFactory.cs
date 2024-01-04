@@ -69,7 +69,7 @@ internal class CostumeFactory
         this.AddGmdFile(costume, modDir);
         this.AddDescription(costume, modDir);
         this.AddMusic(costume, modDir, modId);
-        this.AddGoodbye(costume, modDir);
+        this.AddCharacterAssets(costume, modDir);
         this.AddCutin(costume, modDir);
         this.AddGui(costume, modDir);
         this.AddWeapons(costume, modDir);
@@ -138,13 +138,20 @@ internal class CostumeFactory
         }
     }
 
-    private void AddGoodbye(Costume costume, string modDir)
+    private void AddCharacterAssets(Costume costume, string modDir)
     {
         var goodbyeFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "aoa_goodbye.bcd");
         if (File.Exists(goodbyeFile))
         {
             costume.GoodbyeBindPath = Path.GetRelativePath(modDir, goodbyeFile);
             this.criFsApi.AddBind(goodbyeFile, costume.GoodbyeBindPath, "Costume Framework");
+        }
+
+        var futabaSkillFile = Path.Join(this.GetCostumeFilesDir(costume, modDir), "futaba_skill.bcd");
+        if (File.Exists(futabaSkillFile))
+        {
+            costume.FutabaSkillBind = Path.GetRelativePath(modDir, futabaSkillFile);
+            this.criFsApi.AddBind(futabaSkillFile, costume.FutabaSkillBind, "Costume Framework");
         }
     }
 

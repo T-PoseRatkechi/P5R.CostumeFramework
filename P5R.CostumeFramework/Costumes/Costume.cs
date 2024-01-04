@@ -53,4 +53,9 @@ internal class Costume
     /// Character weapon model.
     /// </summary>
     public string? WeaponBindPath { get; set; }
+
+    /// <summary>
+    /// Futaba skill BCD.
+    /// </summary>
+    public string? FutabaSkillBind { get; set; }
 }

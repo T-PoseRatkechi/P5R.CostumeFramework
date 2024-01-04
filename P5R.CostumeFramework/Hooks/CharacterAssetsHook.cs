@@ -19,6 +19,9 @@ internal class CharacterAssetsHook : IGameHook
     private IReverseWrapper<RedirectCharAsset>? setCutinWrapper;
     private IAsmHook? setCutinHook;
 
+    private IReverseWrapper<RedirectCharAsset>? setFutabaSkillWrapper;
+    private IAsmHook? setFutabaSkillHook;
+
     private readonly IP5RLib p5rLib;
     private readonly CostumeRegistry costumes;
 
@@ -47,9 +50,22 @@ internal class CharacterAssetsHook : IGameHook
                 var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(character, AssetType.Cutin), out this.setCutinWrapper);
                 this.setCutinHook = hooks.CreateAsmHook(patch, result).Activate();
             });
+
+        scanner.Scan(
+            "Futaba Skill Hook",
+            "E8 ?? ?? ?? ?? F3 44 0F 10 0D ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? 0F 57 C0",
+            result =>
+            {
+                var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(Character.Futaba, AssetType.Futaba_Skill), out this.setFutabaSkillWrapper, Register.rcx);
+                this.setFutabaSkillHook = hooks.CreateAsmHook(patch, result).Activate();
+            });
     }
 
-    private static string[] AssembleRedirectPatch(IReloadedHooks hooks, RedirectCharAsset func, out IReverseWrapper<RedirectCharAsset> wrapper)
+    private static string[] AssembleRedirectPatch(
+        IReloadedHooks hooks,
+        RedirectCharAsset func,
+        out IReverseWrapper<RedirectCharAsset> wrapper,
+        Register redirectRegister = Register.rdx)
     {
         return new string[]
         {
@@ -59,7 +75,7 @@ internal class CharacterAssetsHook : IGameHook
             Utilities.PopCallerRegisters,
             "test rax, rax",
             "jz original",
-            "mov rdx, rax",
+            $"mov {redirectRegister}, rax",
             "original:",
         };
     }
@@ -90,6 +106,12 @@ internal class CharacterAssetsHook : IGameHook
                         redirectPath = costume.CutinBindPath;
                     }
                     break;
+                case AssetType.Futaba_Skill:
+                    if (costume.FutabaSkillBind != null)
+                    {
+                        redirectPath = costume.FutabaSkillBind;
+                    }
+                    break;
                 default:
                     Log.Error($"Unknown asset redirection value: {type}");
                     break;
@@ -109,5 +131,6 @@ internal class CharacterAssetsHook : IGameHook
     {
         Gui,
         Cutin,
+        Futaba_Skill
     }
 }

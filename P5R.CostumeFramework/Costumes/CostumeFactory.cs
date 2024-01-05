@@ -141,12 +141,12 @@ internal class CostumeFactory
     private void AddCostumeCharAssets(Costume costume, string modDir)
     {
         var costumeDir = this.GetCostumeDir(costume, modDir);
-        var baseBindPath = Path.Join(costume.Character.ToString(), costume.Name);
 
         // Bind costume files in the bind dir.
         var costumeBindDir = Path.Join(costumeDir, "bind");
         if (Directory.Exists(costumeBindDir))
         {
+            //var baseBindPath = Path.GetRelativePath(modDir, costumeDir);
             foreach (var file in Directory.EnumerateFiles(costumeBindDir, "*", SearchOption.AllDirectories))
             {
                 this.criFsApi.AddBind(file, Path.GetRelativePath(costumeBindDir, file), "Costume Framework");
@@ -156,14 +156,14 @@ internal class CostumeFactory
         var goodbyeFile = Path.Join(costumeDir, "aoa_goodbye.bcd");
         if (File.Exists(goodbyeFile))
         {
-            costume.GoodbyeBindPath = Path.Join(baseBindPath, Path.GetFileName(goodbyeFile));
+            costume.GoodbyeBindPath = Path.GetRelativePath(modDir, goodbyeFile);
             this.criFsApi.AddBind(goodbyeFile, costume.GoodbyeBindPath, "Costume Framework");
         }
 
         var futabaSkillFile = Path.Join(costumeDir, "futaba_skill.bcd");
         if (File.Exists(futabaSkillFile))
         {
-            costume.FutabaSkillBind = Path.Join(baseBindPath, Path.GetFileName(futabaSkillFile));
+            costume.FutabaSkillBind = Path.GetRelativePath(modDir, futabaSkillFile);
             this.criFsApi.AddBind(futabaSkillFile, costume.FutabaSkillBind, "Costume Framework");
         }
     }
@@ -195,6 +195,20 @@ internal class CostumeFactory
         {
             costume.WeaponBindPath = Path.GetRelativePath(modDir, weaponFile);
             this.criFsApi.AddBind(weaponFile, costume.WeaponBindPath, "Costume Framework");
+        }
+
+        var weaponRFile = Path.Join(this.GetCostumeDir(costume, modDir), "melee_r_weapon.gmd");
+        if (File.Exists(weaponRFile))
+        {
+            costume.WeaponRBindPath = Path.GetRelativePath(modDir, weaponRFile);
+            this.criFsApi.AddBind(weaponRFile, costume.WeaponRBindPath, "Costume Framework");
+        }
+
+        var weaponLFile = Path.Join(this.GetCostumeDir(costume, modDir), "melee_l_weapon.gmd");
+        if (File.Exists(weaponLFile))
+        {
+            costume.WeaponLBindPath = Path.GetRelativePath(modDir, weaponLFile);
+            this.criFsApi.AddBind(weaponLFile, costume.WeaponLBindPath, "Costume Framework");
         }
     }
 

@@ -2,8 +2,10 @@
 
 internal enum WeaponType
 {
-    Melee = 0,
-    Melee_L = 1,
-    Melee_R = 2,
-    Ranged = 3,
+    Melee,
+    Melee_R,
+    Melee_L,
+    Ranged,
+    Ranged_R,
+    Ranged_L,
 }

@@ -54,37 +54,28 @@ internal unsafe class CostumeGmdHook
                 "mov rdx, [rdx]"
             };
 
-            var redirectCostumeGmd1 = hooks.CreateAsmHook(
+
+            var assetRedirectHooks = new List<IAsmHook>
+            {
+                hooks.CreateAsmHook(
                 patch,
                 result + 0x4A,
-                AsmHookBehaviour.DoNotExecuteOriginal);
+                AsmHookBehaviour.DoNotExecuteOriginal),
 
-            var redirectCostumeGmd2 = hooks.CreateAsmHook(
+                hooks.CreateAsmHook(
                 patch,
                 result + 0xDF,
-                AsmHookBehaviour.DoNotExecuteOriginal);
+                AsmHookBehaviour.DoNotExecuteOriginal)
+            };
 
-            var redirectWeaponGmd = hooks.CreateAsmHook(
-                patch,
-                result + 0x2D6,
-                AsmHookBehaviour.DoNotExecuteOriginal);
+            var baseWeaponRedirct = result + 0x2D6;
+            foreach (var type in Enum.GetValues<WeaponType>())
+            {
+                var weaponRedirect = baseWeaponRedirct + ((int)type * 0x1C);
+                assetRedirectHooks.Add(hooks.CreateAsmHook(patch, weaponRedirect, AsmHookBehaviour.DoNotExecuteOriginal));
+            }
 
-            var redirectWeaponRGmd = hooks.CreateAsmHook(
-                patch,
-                result + 0x2F2,
-                AsmHookBehaviour.DoNotExecuteOriginal);
-
-            var redirectWeaponLGmd = hooks.CreateAsmHook(
-                patch,
-                result + 0x30E,
-                AsmHookBehaviour.DoNotExecuteOriginal);
-
-            this.loadAssetAsmHooks = new(
-                redirectCostumeGmd1,
-                redirectCostumeGmd2,
-                redirectWeaponGmd,
-                redirectWeaponRGmd,
-                redirectWeaponLGmd);
+            this.loadAssetAsmHooks = new(assetRedirectHooks.ToArray());
             this.loadAssetAsmHooks.Activate().Disable();
         });
     }
@@ -117,22 +108,28 @@ internal unsafe class CostumeGmdHook
         Log.Debug($"Weapon GMD: {param1} || {character} || {modelId} || {weaponType} || {param4} || {param5}");
         if (this.costumes.TryGetCostume(outfitItemId, out var costume))
         {
-            if (weaponType == WeaponType.Melee && costume.WeaponBindPath != null)
+            switch (weaponType)
             {
-                this.SetAssetRedirect(costume.WeaponBindPath);
-                Log.Debug($"Weapon GMD redirected: {character} || {costume.WeaponBindPath}");
-            }
-
-            if (weaponType == WeaponType.Melee_R && costume.WeaponRBindPath != null)
-            {
-                this.SetAssetRedirect(costume.WeaponRBindPath);
-                Log.Debug($"Weapon GMD redirected: {character} || {costume.WeaponRBindPath}");
-            }
-
-            if (weaponType == WeaponType.Melee_L && costume.WeaponLBindPath != null)
-            {
-                this.SetAssetRedirect(costume.WeaponLBindPath);
-                Log.Debug($"Weapon GMD redirected: {character} || {costume.WeaponLBindPath}");
+                case WeaponType.Melee:
+                    this.SetConditionalRedirect(character, costume.WeaponBindPath);
+                    break;
+                case WeaponType.Melee_R:
+                    this.SetConditionalRedirect(character, costume.WeaponRBindPath);
+                    break;
+                case WeaponType.Melee_L:
+                    this.SetConditionalRedirect(character, costume.WeaponLBindPath);
+                    break;
+                case WeaponType.Ranged:
+                    this.SetConditionalRedirect(character, costume.RangedBindPath);
+                    break;
+                case WeaponType.Ranged_R:
+                    this.SetConditionalRedirect(character, costume.RangedRBindPath);
+                    break;
+                case WeaponType.Ranged_L:
+                    this.SetConditionalRedirect(character, costume.RangedLBindPath);
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -185,4 +182,13 @@ internal unsafe class CostumeGmdHook
 
     private int GetCostumeModelId(int equipmentId)
         => VirtualOutfitsSection.GetOutfitSetId(equipmentId) + 150;
+
+    private void SetConditionalRedirect(Character character, string? redirectPath)
+    {
+        if (redirectPath != null)
+        {
+            this.SetAssetRedirect(redirectPath);
+            Log.Debug($"Weapon GMD redirected: {character} || {redirectPath}");
+        }
+    }
 }

@@ -197,18 +197,39 @@ internal class CostumeFactory
             this.criFsApi.AddBind(weaponFile, costume.WeaponBindPath, "Costume Framework");
         }
 
-        var weaponRFile = Path.Join(this.GetCostumeDir(costume, modDir), "melee_r_weapon.gmd");
+        var weaponRFile = Path.Join(this.GetCostumeDir(costume, modDir), "melee_weapon_r.gmd");
         if (File.Exists(weaponRFile))
         {
             costume.WeaponRBindPath = Path.GetRelativePath(modDir, weaponRFile);
             this.criFsApi.AddBind(weaponRFile, costume.WeaponRBindPath, "Costume Framework");
         }
 
-        var weaponLFile = Path.Join(this.GetCostumeDir(costume, modDir), "melee_l_weapon.gmd");
+        var weaponLFile = Path.Join(this.GetCostumeDir(costume, modDir), "melee_weapon_l.gmd");
         if (File.Exists(weaponLFile))
         {
             costume.WeaponLBindPath = Path.GetRelativePath(modDir, weaponLFile);
             this.criFsApi.AddBind(weaponLFile, costume.WeaponLBindPath, "Costume Framework");
+        }
+
+        var rangedFile = Path.Join(this.GetCostumeDir(costume, modDir), "ranged_weapon.gmd");
+        if (File.Exists(rangedFile))
+        {
+            costume.RangedBindPath = Path.GetRelativePath(modDir, rangedFile);
+            this.criFsApi.AddBind(rangedFile, costume.RangedBindPath, "Costume Framework");
+        }
+
+        var rangedRFile = Path.Join(this.GetCostumeDir(costume, modDir), "ranged_weapon_r.gmd");
+        if (File.Exists(rangedRFile))
+        {
+            costume.RangedRBindPath = Path.GetRelativePath(modDir, rangedRFile);
+            this.criFsApi.AddBind(rangedRFile, costume.RangedRBindPath, "Costume Framework");
+        }
+
+        var rangedLFile = Path.Join(this.GetCostumeDir(costume, modDir), "ranged_weapon_l.gmd");
+        if (File.Exists(rangedLFile))
+        {
+            costume.RangedLBindPath = Path.GetRelativePath(modDir, rangedLFile);
+            this.criFsApi.AddBind(rangedLFile, costume.RangedLBindPath, "Costume Framework");
         }
     }
 

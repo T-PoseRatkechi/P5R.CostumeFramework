@@ -49,20 +49,17 @@ internal class Costume
     /// </summary>
     public string? GuiBindFile { get; set; }
 
-    /// <summary>
-    /// Character weapon model.
-    /// </summary>
     public string? WeaponBindPath { get; set; }
 
-    /// <summary>
-    /// Character right weapon model.
-    /// </summary>
     public string? WeaponRBindPath { get; set; }
 
-    /// <summary>
-    /// Character left weapon model.
-    /// </summary>
     public string? WeaponLBindPath { get; set; }
+
+    public string? RangedBindPath { get; set; }
+
+    public string? RangedRBindPath { get; set; }
+
+    public string? RangedLBindPath { get; set; }
 
     /// <summary>
     /// Futaba skill BCD.

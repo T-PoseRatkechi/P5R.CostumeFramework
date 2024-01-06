@@ -163,8 +163,29 @@ internal class CostumeFactory
         var futabaSkillFile = Path.Join(costumeDir, "futaba_skill.bcd");
         if (File.Exists(futabaSkillFile))
         {
-            costume.FutabaSkillBind = Path.GetRelativePath(modDir, futabaSkillFile);
-            this.criFsApi.AddBind(futabaSkillFile, costume.FutabaSkillBind, "Costume Framework");
+            costume.FutabaSkillBindPath = Path.GetRelativePath(modDir, futabaSkillFile);
+            this.criFsApi.AddBind(futabaSkillFile, costume.FutabaSkillBindPath, "Costume Framework");
+        }
+
+        var futabaGoodbyeFile_1 = Path.Join(costumeDir, "futaba_goodbye_1.bcd");
+        if (File.Exists(futabaGoodbyeFile_1))
+        {
+            costume.FutabaGoodbyeBindPath_1 = Path.GetRelativePath(modDir, futabaGoodbyeFile_1);
+            this.criFsApi.AddBind(futabaGoodbyeFile_1, costume.FutabaGoodbyeBindPath_1, "Costume Framework");
+        }
+
+        var futabaGoodbyeFile_2 = Path.Join(costumeDir, "futaba_goodbye_2.bcd");
+        if (File.Exists(futabaGoodbyeFile_2))
+        {
+            costume.FutabaGoodbyeBindPath_2 = Path.GetRelativePath(modDir, futabaGoodbyeFile_2);
+            this.criFsApi.AddBind(futabaGoodbyeFile_2, costume.FutabaGoodbyeBindPath_2, "Costume Framework");
+        }
+
+        var futabaGoodbyeFile_3 = Path.Join(costumeDir, "futaba_goodbye_3.bcd");
+        if (File.Exists(futabaGoodbyeFile_3))
+        {
+            costume.FutabaGoodbyeBindPath_3 = Path.GetRelativePath(modDir, futabaGoodbyeFile_3);
+            this.criFsApi.AddBind(futabaGoodbyeFile_3, costume.FutabaGoodbyeBindPath_3, "Costume Framework");
         }
     }
 
@@ -183,8 +204,8 @@ internal class CostumeFactory
         var guiFile = Path.Join(this.GetCostumeDir(costume, modDir), "aoa_portrait.dds");
         if (File.Exists(guiFile))
         {
-            costume.GuiBindFile = Path.GetRelativePath(modDir, guiFile);
-            this.criFsApi.AddBind(guiFile, costume.GuiBindFile, "Costume Framework");
+            costume.GuiBindPath = Path.GetRelativePath(modDir, guiFile);
+            this.criFsApi.AddBind(guiFile, costume.GuiBindPath, "Costume Framework");
         }
     }
 

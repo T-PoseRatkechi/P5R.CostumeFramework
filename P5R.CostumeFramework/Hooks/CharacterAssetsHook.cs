@@ -11,7 +11,7 @@ namespace P5R.CostumeFramework.Hooks;
 internal class CharacterAssetsHook : IGameHook
 {
     [Function(Register.r8, Register.rax, true)]
-    private delegate nint RedirectCharAsset(Character character);
+    private delegate nint RedirectCharAsset(ushort param);
 
     private IReverseWrapper<RedirectCharAsset>? setGuiWrapper;
     private IAsmHook? setGuiHook;
@@ -21,6 +21,9 @@ internal class CharacterAssetsHook : IGameHook
 
     private IReverseWrapper<RedirectCharAsset>? setFutabaSkillWrapper;
     private IAsmHook? setFutabaSkillHook;
+
+    private IReverseWrapper<RedirectCharAsset>? setFutabaGoodbyeWrapper;
+    private IAsmHook? setFutabaGoodbyeHook;
 
     private readonly IP5RLib p5rLib;
     private readonly CostumeRegistry costumes;
@@ -38,7 +41,7 @@ internal class CharacterAssetsHook : IGameHook
             "48 8D 8D ?? ?? ?? ?? E8 ?? ?? ?? ?? BA 10 00 00 00 8D 4A ?? E8 ?? ?? ?? ?? 48 8B D8 48 8B 05 ?? ?? ?? ?? 48 85 C0 74 ?? BA 50 00 00 00",
             result =>
             {
-                var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(character, AssetType.Gui), out this.setGuiWrapper);
+                var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile((Character)character, AssetType.Gui), out this.setGuiWrapper);
                 this.setGuiHook = hooks.CreateAsmHook(patch, result).Activate();
             });
 
@@ -47,7 +50,7 @@ internal class CharacterAssetsHook : IGameHook
             "E8 ?? ?? ?? ?? 48 8D 4C 24 ?? E8 ?? ?? ?? ?? 48 89 47 ?? C7 07 01 00 00 00",
             result =>
             {
-                var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(character, AssetType.Cutin), out this.setCutinWrapper);
+                var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile((Character)character, AssetType.Cutin), out this.setCutinWrapper);
                 this.setCutinHook = hooks.CreateAsmHook(patch, result).Activate();
             });
 
@@ -58,6 +61,15 @@ internal class CharacterAssetsHook : IGameHook
             {
                 var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(Character.Futaba, AssetType.Futaba_Skill), out this.setFutabaSkillWrapper, Register.rcx);
                 this.setFutabaSkillHook = hooks.CreateAsmHook(patch, result).Activate();
+            });
+
+        scanner.Scan(
+            "Futaba Goodbye Hook",
+            "E8 ?? ?? ?? ?? EB ?? 48 8D 15 ?? ?? ?? ?? EB ?? 45 85 ED",
+            result =>
+            {
+                var patch = AssembleRedirectPatch(hooks, goodbyePersonaId => this.RedirectFutabaGoodbye(goodbyePersonaId), out this.setFutabaGoodbyeWrapper);
+                this.setFutabaGoodbyeHook = hooks.CreateAsmHook(patch, result).Activate();
             });
     }
 
@@ -80,6 +92,48 @@ internal class CharacterAssetsHook : IGameHook
         };
     }
 
+    private nint RedirectFutabaGoodbye(ushort goodbyePersonaId)
+    {
+        var currentOutfitId = this.p5rLib.GET_EQUIP(Character.Futaba, EquipSlot.Costume);
+        string? redirectPath = null;
+
+        if (this.costumes.TryGetCostume(currentOutfitId, out var costume))
+        {
+            switch (goodbyePersonaId)
+            {
+                case 1:
+                    if (costume.FutabaGoodbyeBindPath_1 != null)
+                    {
+                        redirectPath = costume.FutabaGoodbyeBindPath_1;
+                    }
+                    break;
+                case 2:
+                    if (costume.FutabaGoodbyeBindPath_2 != null)
+                    {
+                        redirectPath = costume.FutabaGoodbyeBindPath_2;
+                    }
+                    break;
+                case 3:
+                    if (costume.FutabaGoodbyeBindPath_3 != null)
+                    {
+                        redirectPath = costume.FutabaGoodbyeBindPath_3;
+                    }
+                    break;
+                default:
+                    Log.Error($"Unknown Futaba goodbye persona ID: {goodbyePersonaId}");
+                    break;
+            }
+        }
+
+        if (redirectPath != null)
+        {
+            Log.Debug($"Character asset redirected: {Character.Futaba} || {AssetType.Futaba_Goodbye} || {redirectPath}");
+            return StringsCache.GetStringPtr(redirectPath);
+        }
+
+        return IntPtr.Zero;
+    }
+
     private nint RedirectCharAssetFile(Character character, AssetType type)
     {
         if (!Enum.IsDefined(character))
@@ -95,9 +149,9 @@ internal class CharacterAssetsHook : IGameHook
             switch (type)
             {
                 case AssetType.Gui:
-                    if (costume.GuiBindFile != null)
+                    if (costume.GuiBindPath != null)
                     {
-                        redirectPath = costume.GuiBindFile;
+                        redirectPath = costume.GuiBindPath;
                     }
                     break;
                 case AssetType.Cutin:
@@ -107,9 +161,9 @@ internal class CharacterAssetsHook : IGameHook
                     }
                     break;
                 case AssetType.Futaba_Skill:
-                    if (costume.FutabaSkillBind != null)
+                    if (costume.FutabaSkillBindPath != null)
                     {
-                        redirectPath = costume.FutabaSkillBind;
+                        redirectPath = costume.FutabaSkillBindPath;
                     }
                     break;
                 default:
@@ -131,6 +185,7 @@ internal class CharacterAssetsHook : IGameHook
     {
         Gui,
         Cutin,
-        Futaba_Skill
+        Futaba_Skill,
+        Futaba_Goodbye,
     }
 }

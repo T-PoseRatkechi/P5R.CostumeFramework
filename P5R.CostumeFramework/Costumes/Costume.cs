@@ -67,7 +67,7 @@ internal class Costume
     /// <summary>
     /// AOA portrait.
     /// </summary>
-    public string? GuiBindFile { get; set; }
+    public string? GuiBindPath { get; set; }
 
     public string? WeaponBindPath { get; set; }
 
@@ -84,5 +84,11 @@ internal class Costume
     /// <summary>
     /// Futaba skill BCD.
     /// </summary>
-    public string? FutabaSkillBind { get; set; }
+    public string? FutabaSkillBindPath { get; set; }
+
+    public string? FutabaGoodbyeBindPath_1 { get; set; }
+
+    public string? FutabaGoodbyeBindPath_2 { get; set; }
+
+    public string? FutabaGoodbyeBindPath_3 { get; set; }
 }

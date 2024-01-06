@@ -6,14 +6,6 @@ namespace P5R.CostumeFramework.Configuration;
 
 public class Config : Configurable<Config>
 {
-    [DisplayName("Log Level")]
-    [DefaultValue(LogLevel.Information)]
-    public LogLevel LogLevel { get; set; } = LogLevel.Information;
-
-    [DisplayName("Randomize Costumes")]
-    [Description("Costume will randomize when moving between areas.")]
-    [DefaultValue(false)]
-    public bool RandomizeCostumes { get; set; } = false;
 
     [Category("Character Assets")]
     [DisplayName("Joker")]
@@ -55,12 +47,31 @@ public class Config : Configurable<Config>
     [DisplayName("Sumire")]
     public CharacterAssets Sumire_Assets { get; set; }
 
-    [DisplayName("Overworld Costumes")]
-    [Description("Costumes will apply in the overworld too.\nThis is just a for fun feature, expect some non-game breaking visual bugs.")]
+    [Category("Bonus Features")]
+    [DisplayName("Extra Outfits")]
+    [Description("Add new outfits from existing game files.")]
+    [DefaultValue(true)]
+    public bool ExtraOutfits { get; set; } = true;
+
+    [Category("Bonus Features")]
+    [DisplayName("Randomize Outfits")]
+    [Description("Outfits will randomize when moving between areas.")]
+    [DefaultValue(false)]
+    public bool RandomizeCostumes { get; set; } = false;
+
+    [Category("Bonus Features")]
+    [DisplayName("Overworld Outfits")]
+    [Description("Outfits will apply in the overworld too.\nThis is just a for fun feature, expect bugs.")]
     [DefaultValue(false)]
     public bool OverworldCostumes { get; set; } = false;
 
-    [DisplayName("(Debug) Unlock All Items")]
+    [Category("Debugging")]
+    [DisplayName("Log Level")]
+    [DefaultValue(LogLevel.Information)]
+    public LogLevel LogLevel { get; set; } = LogLevel.Information;
+
+    [Category("Debugging")]
+    [DisplayName("Unlock All Items")]
     [DefaultValue(false)]
     public bool UnlockAllItems { get; set; } = false;
 }

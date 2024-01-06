@@ -55,7 +55,7 @@ internal unsafe class CostumeService
         var assetSettings = new CharacterAssetsSettings(config);
         CharacterAssetsLoader.Init(modLoader, assetSettings);
 
-        var costumes = new CostumeRegistry(modLoader, assetSettings);
+        var costumes = new CostumeRegistry(modLoader, config, assetSettings);
 
         this.gameHooks.Add(new ItemNameHook(costumes));
         this.gameHooks.Add(new CharacterAssetsHook(p5rLib, costumes));

@@ -1,5 +1,6 @@
 ﻿using CriFs.V2.Hook.Interfaces;
 using P5R.CostumeFramework.Characters;
+using P5R.CostumeFramework.Configuration;
 using P5R.CostumeFramework.Models;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
@@ -16,7 +17,10 @@ internal class CostumeRegistry
 
     private readonly Dictionary<Character, Costume> randomizedCostumes;
 
-    public CostumeRegistry(IModLoader modLoader, CharacterAssetsSettings assetSettings)
+    public CostumeRegistry(
+        IModLoader modLoader,
+        Config config,
+        CharacterAssetsSettings assetSettings)
     {
         this.modLoader = modLoader;
         this.assetSettings = assetSettings;
@@ -25,11 +29,14 @@ internal class CostumeRegistry
         this.modLoader.ModLoading += this.OnModLoading;
 
         this.costumeFactory = new(criFsApi, this.CostumesList);
-        this.randomizedCostumes = CostumeRegistryUtils.AddRandomizedCostumes(this.costumeFactory)
-            .GroupBy(x => x.Character)
-            .ToDictionary(x => x.Key, x => x.First());
+        //this.randomizedCostumes = CostumeRegistryUtils.AddRandomizedCostumes(this.costumeFactory)
+        //    .GroupBy(x => x.Character)
+        //    .ToDictionary(x => x.Key, x => x.First());
 
-        CostumeRegistryUtils.AddExistingCostumes(this.costumeFactory);
+        if (config.ExtraOutfits)
+        {
+            CostumeRegistryUtils.AddExistingCostumes(this.costumeFactory);
+        }
     }
 
     public GameCostumes CostumesList { get; } = new();

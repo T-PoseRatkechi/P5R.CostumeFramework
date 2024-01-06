@@ -5,6 +5,13 @@ namespace P5R.CostumeFramework.Costumes;
 internal class Costume
 {
     public const string DEFAULT_DESCRIPTION = "[f 0 5 65278][f 2 1]Outfit added with Costume Framework.[n][e]";
+    private static readonly string[] shoutouts = new string[]
+    {
+        "Consider checking out SCArkadia's difficulty mod,[n]P5R Reimagined to experience P5R in a new way![n]",
+        "DeathChaos's mod, Custom Bonus Tweaks, adds[n]new features, outfits, and BGM as well as[n]implementing unused content![n]",
+    };
+
+    private string descriptionMessage = DEFAULT_DESCRIPTION;
 
     public Costume(Character character, int itemId)
     {
@@ -32,7 +39,20 @@ internal class Costume
 
     public string? BattleThemeFile { get; set; }
 
-    public string DescriptionMsg { get; set; } = DEFAULT_DESCRIPTION;
+    public string DescriptionMsg
+    {
+        get
+        {
+            if (this.descriptionMessage == DEFAULT_DESCRIPTION && Random.Shared.Next(0, 3) == 0)
+            {
+                var randomShout = shoutouts[Random.Shared.Next(0, shoutouts.Length)];
+                return $"[f 0 5 65278][f 2 1]{randomShout}[e]";
+            }
+
+            return this.descriptionMessage;
+        }
+        set => this.descriptionMessage = value;
+    }
 
     /// <summary>
     /// AOA character animation ending.

@@ -6,6 +6,29 @@ namespace P5R.CostumeFramework.Configuration;
 
 public class Config : Configurable<Config>
 {
+    [Category("Settings")]
+    [DisplayName("Current Party BGM Only")]
+    [Description("Whether to limit outfit BGM to only members in the current party.\nJoker and Futaba's outfit BGM is always enabled.")]
+    [DefaultValue(true)]
+    public bool CurrentPartyBgmOnly { get; set; } = true;
+
+    [Category("Settings")]
+    [DisplayName("Extra Outfits")]
+    [Description("Add new outfits from existing game files.")]
+    [DefaultValue(true)]
+    public bool ExtraOutfits { get; set; } = true;
+
+    [Category("Settings")]
+    [DisplayName("Randomize Outfits")]
+    [Description("Outfits will randomize when moving between areas.")]
+    [DefaultValue(false)]
+    public bool RandomizeCostumes { get; set; } = false;
+
+    [Category("Settings")]
+    [DisplayName("Overworld Outfits")]
+    [Description("Outfits will apply in the overworld too.\nThis is just a for fun feature, expect bugs.")]
+    [DefaultValue(false)]
+    public bool OverworldCostumes { get; set; } = false;
 
     [Category("Character Assets")]
     [DisplayName("Joker")]
@@ -46,24 +69,6 @@ public class Config : Configurable<Config>
     [Category("Character Assets")]
     [DisplayName("Sumire")]
     public CharacterAssets Sumire_Assets { get; set; }
-
-    [Category("Bonus Features")]
-    [DisplayName("Extra Outfits")]
-    [Description("Add new outfits from existing game files.")]
-    [DefaultValue(true)]
-    public bool ExtraOutfits { get; set; } = true;
-
-    [Category("Bonus Features")]
-    [DisplayName("Randomize Outfits")]
-    [Description("Outfits will randomize when moving between areas.")]
-    [DefaultValue(false)]
-    public bool RandomizeCostumes { get; set; } = false;
-
-    [Category("Bonus Features")]
-    [DisplayName("Overworld Outfits")]
-    [Description("Outfits will apply in the overworld too.\nThis is just a for fun feature, expect bugs.")]
-    [DefaultValue(false)]
-    public bool OverworldCostumes { get; set; } = false;
 
     [Category("Debugging")]
     [DisplayName("Log Level")]

@@ -1,5 +1,6 @@
 ﻿using BGME.BattleThemes.Interfaces;
 using BGME.Framework.Interfaces;
+using P5R.CostumeFramework.Configuration;
 using P5R.CostumeFramework.Models;
 using p5rpc.lib.interfaces;
 
@@ -10,19 +11,23 @@ internal class CostumeMusicService
     private readonly IBgmeApi bgme;
     private readonly IBattleThemesApi battleThemes;
     private readonly IP5RLib p5rLib;
+    private readonly Config config;
     private readonly CostumeRegistry costumes;
 
     private readonly Dictionary<Character, CostumeMusic> costumeMusic = new();
+    private List<Character> currentParty = new();
 
     public CostumeMusicService(
         IBgmeApi bgme,
         IBattleThemesApi battleThemes,
         IP5RLib p5rLib,
+        Config config,
         CostumeRegistry costumes)
     {
         this.bgme = bgme;
         this.battleThemes = battleThemes;
         this.p5rLib = p5rLib;
+        this.config = config;
         this.costumes = costumes;
 
         foreach (var character in Enum.GetValues<Character>())
@@ -33,6 +38,20 @@ internal class CostumeMusicService
 
     public void Refresh()
     {
+        this.currentParty.Clear();
+        this.currentParty.Add(Character.Joker);
+        this.currentParty.Add(Character.Futaba);
+        for (int i = 1; i < 4; i++)
+        {
+            this.currentParty.Add((Character)this.p5rLib.GET_PARTY(i));
+        }
+
+        Log.Debug("Current Party");
+        foreach (var character in this.currentParty)
+        {
+            Log.Debug(character.ToString());
+        }
+
         foreach (var character in Enum.GetValues<Character>())
         {
             var outfitItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
@@ -56,6 +75,10 @@ internal class CostumeMusicService
     {
         var currentBgmeFile = this.costumeMusic[costume.Character].MusicScriptFile;
         var newBgmeFile = costume.MusicScriptFile;
+        if (this.config.CurrentPartyBgmOnly && !this.currentParty.Contains(costume.Character))
+        {
+            newBgmeFile = null;
+        }
 
         // Costume music has changed.
         if (currentBgmeFile != newBgmeFile)
@@ -82,6 +105,10 @@ internal class CostumeMusicService
     {
         var currentThemeFile = this.costumeMusic[costume.Character].BattleThemeFile;
         var newThemeFile = costume.BattleThemeFile;
+        if (this.config.CurrentPartyBgmOnly && !this.currentParty.Contains(costume.Character))
+        {
+            newThemeFile = null;
+        }
 
         // Costume music has changed.
         if (currentThemeFile != newThemeFile)

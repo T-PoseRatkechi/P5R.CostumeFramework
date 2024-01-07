@@ -101,20 +101,20 @@ internal class CostumeRegistry
             // Use costume marked as default.
             if (activeCostumes.FirstOrDefault(x => x.Config.IsDefault == true) is Costume defaultCostume)
             {
-                Log.Debug($"Using Default Costume: {character} || {defaultCostume.ItemId}");
+                Log.Debug($"Using default costume: {character} || {defaultCostume.ItemId}");
                 return defaultCostume.ItemId;
             }
 
             // Use first costume for character.
             if (activeCostumes.Length > 0)
             {
-                Log.Debug($"Using First Costume: {character} || {activeCostumes[0].ItemId}");
+                Log.Debug($"Using first costume: {character} || {activeCostumes[0].ItemId}");
                 return activeCostumes[0].ItemId;
             }
 
             // Else fallback to game default costume.
             var gameDefault = this.CostumesList.First(x => x.Character == character).ItemId;
-            Log.Debug($"Using Game Default Costume: {character} || {gameDefault}");
+            Log.Debug($"Using game default costume: {character} || {gameDefault}");
             return gameDefault;
         }
     }

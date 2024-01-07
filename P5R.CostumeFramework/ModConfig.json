@@ -2,8 +2,8 @@
   "ModId": "P5R.CostumeFramework",
   "ModName": "Costume Framework",
   "ModAuthor": "T-Pose Ratkechi",
-  "ModVersion": "1.0.0",
-  "ModDescription": "",
+  "ModVersion": "1.0.25",
+  "ModDescription": "Streamlines and enhances outfit mods!",
   "ModDll": "P5R.CostumeFramework.dll",
   "ModIcon": "Preview.png",
   "ModR2RManagedDll32": "x86/P5R.CostumeFramework.dll",
@@ -118,8 +118,19 @@
             "ItemId": 477399
           },
           "ReleaseMetadataName": "BGME.Framework.ReleaseMetadata.json"
+        },
+        "BGME.BattleThemes": {
+          "Config": {
+            "ItemType": "Mod",
+            "ItemId": 488707
+          },
+          "ReleaseMetadataName": "BGME.BattleThemes.ReleaseMetadata.json"
         }
       }
+    },
+    "GameBanana": {
+      "ItemType": "Mod",
+      "ItemId": 488633
     }
   },
   "IsUniversalMod": false,

@@ -56,10 +56,12 @@ internal unsafe class CostumeService
         CharacterAssetsLoader.Init(modLoader, assetSettings);
 
         var costumes = new CostumeRegistry(modLoader, config, assetSettings);
+        this.costumeMusic = new(bgme, battleThemes, p5rLib, config, costumes);
 
         this.gameHooks.Add(new ItemNameHook(costumes));
         this.gameHooks.Add(new CharacterAssetsHook(p5rLib, costumes));
         this.gameHooks.Add(new OutfitDescriptionHook(modLoader, compiler, costumes));
+        this.gameHooks.Add(new PartyHook(costumeMusic));
         foreach (var hook in this.gameHooks)
         {
             hook.Initialize(scanner, hooks);
@@ -69,7 +71,6 @@ internal unsafe class CostumeService
         this.itemCountHook = new(scanner, hooks, config, costumes);
         this.goodbyeHook = new(scanner, hooks, p5rLib, costumes);
         this.emtGapHook = new(scanner, hooks, p5rLib);
-        this.costumeMusic = new(bgme, battleThemes, p5rLib, costumes);
         this.fieldChangeHook = new(scanner, hooks, p5rLib, config, costumes, this.costumeMusic);
         this.equippedItemHook = new(scanner, hooks, p5rLib, costumes, this.costumeMusic);
         this.costumeGmdHook = new(scanner, hooks, bgme, p5rLib, config, costumes, equippedItemHook);

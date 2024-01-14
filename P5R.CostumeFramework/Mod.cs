@@ -33,7 +33,14 @@ public class Mod : ModBase
         Debugger.Launch();
 #endif
 
-        this.costumes = new(this.modLoader, this.hooks, this.config);
+        try
+        {
+            this.costumes = new(this.modLoader, this.hooks, this.config);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to start costumes service.");
+        }
     }
 
     #region Standard Overrides

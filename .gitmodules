@@ -11,3 +11,6 @@
 [submodule "submodules/BGME.BattleThemes"]
 	path = submodules/BGME.BattleThemes
 	url = https://github.com/T-PoseRatkechi/BGME.BattleThemes.git
+[submodule "submodules/FileEmulationFramework"]
+	path = submodules/FileEmulationFramework
+	url = https://github.com/Sewer56/FileEmulationFramework.git

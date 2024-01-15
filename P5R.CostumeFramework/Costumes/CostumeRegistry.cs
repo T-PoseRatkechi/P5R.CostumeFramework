@@ -1,6 +1,7 @@
 ﻿using CriFs.V2.Hook.Interfaces;
 using P5R.CostumeFramework.Characters;
 using P5R.CostumeFramework.Configuration;
+using P5R.CostumeFramework.Interfaces;
 using P5R.CostumeFramework.Models;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
@@ -8,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace P5R.CostumeFramework.Costumes;
 
-internal class CostumeRegistry
+internal class CostumeRegistry : ICostumeApi
 {
     private readonly IModLoader modLoader;
     private readonly ICriFsRedirectorApi criFsApi;
@@ -143,26 +144,10 @@ internal class CostumeRegistry
         var modDir = this.modLoader.GetDirectoryForModId(config.ModId);
         this.AddBindFiles(modDir);
 
-        // Register mod costumes.
-        foreach (var character in Enum.GetValues<Character>())
+        var costumesDir = Path.Join(modDir, "costumes");
+        if (Directory.Exists(costumesDir))
         {
-            var characterDir = Path.Join(modDir, "costumes", character.ToString());
-            if (!Directory.Exists(characterDir))
-            {
-                continue;
-            }
-
-            // Add costume files for existing costumes.
-            foreach (var costume in this.CostumesList.Where(x => x.Character == character && x.Name != null))
-            {
-                this.costumeFactory.AddCostumeFiles(costume, modDir, config.ModId);
-            }
-
-            // Build new costumes from GMD files.
-            foreach (var file in Directory.EnumerateFiles(characterDir, "*.gmd", SearchOption.TopDirectoryOnly))
-            {
-                this.costumeFactory.Create(config.ModId, modDir, character, file);
-            }
+            this.AddCostumesFolder(config.ModId, costumesDir);
         }
     }
 
@@ -176,6 +161,31 @@ internal class CostumeRegistry
                 var relativeFilePath = Path.GetRelativePath(bindDir, file);
                 this.criFsApi.AddBind(file, relativeFilePath, "Costume Framework");
                 Log.Debug($"Costume file binded: {relativeFilePath}");
+            }
+        }
+    }
+
+    public void AddCostumesFolder(string modId, string costumesDir)
+    {
+        // Register mod costumes.
+        foreach (var character in Enum.GetValues<Character>())
+        {
+            var characterDir = Path.Join(costumesDir, character.ToString());
+            if (!Directory.Exists(characterDir))
+            {
+                continue;
+            }
+
+            // Add costume files for existing costumes.
+            foreach (var costume in this.CostumesList.Where(x => x.Character == character && x.Name != null))
+            {
+                this.costumeFactory.AddCostumeFiles(costume, costumesDir, modId);
+            }
+
+            // Build new costumes from GMD files.
+            foreach (var file in Directory.EnumerateFiles(characterDir, "*.gmd", SearchOption.TopDirectoryOnly))
+            {
+                this.costumeFactory.Create(modId, costumesDir, character, file);
             }
         }
     }

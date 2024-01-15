@@ -51,6 +51,7 @@
   </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\P5R.CostumeFramework.Interfaces\P5R.CostumeFramework.Interfaces.csproj" />
       <ProjectReference Include="..\submodules\Atlus-Script-Tools\Source\AtlusScriptLibrary\AtlusScriptLibrary.csproj" />
       <ProjectReference Include="..\submodules\BGME.BattleThemes\BGME.BattleThemes.Interfaces\BGME.BattleThemes.Interfaces.csproj" />
       <ProjectReference Include="..\submodules\BGME\BGME.Framework.Interfaces\BGME.Framework.Interfaces.csproj" />

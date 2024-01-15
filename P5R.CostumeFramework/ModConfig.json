@@ -141,7 +141,10 @@
     "p5rpc.modloader",
     "Reloaded.Memory.SigScan.ReloadedII",
     "reloaded.sharedlib.hooks",
-    "BGME.BattleThemes"
+    "BGME.BattleThemes",
+    "reloaded.universal.fileemulationframework.pak",
+    "reloaded.universal.fileemulationframework.bf",
+    "reloaded.universal.fileemulationframework.spd"
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [

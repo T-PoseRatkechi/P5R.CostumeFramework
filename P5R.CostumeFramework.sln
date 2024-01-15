@@ -15,6 +15,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AtlusScriptLibrary", "submo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BGME.BattleThemes.Interfaces", "submodules\BGME.BattleThemes\BGME.BattleThemes.Interfaces\BGME.BattleThemes.Interfaces.csproj", "{49205152-DF49-4C21-B3BC-6D22DD152DB7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PAK.Stream.Emulator.Interfaces", "submodules\FileEmulationFramework\Emulator\Interfaces\PAK.Stream.Emulator.Interfaces\PAK.Stream.Emulator.Interfaces.csproj", "{E94338E3-4D0D-4D1A-8C1F-6CF6956CA119}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPD.File.Emulator.Interfaces", "submodules\FileEmulationFramework\Emulator\Interfaces\SPD.File.Emulator.Interfaces\SPD.File.Emulator.Interfaces.csproj", "{39DDE09A-D3BD-4651-9B1A-7BF778DE7D9F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BF.File.Emulator.Interfaces", "submodules\FileEmulationFramework\Emulator\Interfaces\BF.File.Emulator.Interfaces\BF.File.Emulator.Interfaces.csproj", "{D1EB3E07-AD64-4B3E-A78B-ECB8B46104D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +51,18 @@ Global
 		{49205152-DF49-4C21-B3BC-6D22DD152DB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49205152-DF49-4C21-B3BC-6D22DD152DB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49205152-DF49-4C21-B3BC-6D22DD152DB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E94338E3-4D0D-4D1A-8C1F-6CF6956CA119}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E94338E3-4D0D-4D1A-8C1F-6CF6956CA119}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E94338E3-4D0D-4D1A-8C1F-6CF6956CA119}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E94338E3-4D0D-4D1A-8C1F-6CF6956CA119}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39DDE09A-D3BD-4651-9B1A-7BF778DE7D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39DDE09A-D3BD-4651-9B1A-7BF778DE7D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39DDE09A-D3BD-4651-9B1A-7BF778DE7D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39DDE09A-D3BD-4651-9B1A-7BF778DE7D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1EB3E07-AD64-4B3E-A78B-ECB8B46104D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1EB3E07-AD64-4B3E-A78B-ECB8B46104D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1EB3E07-AD64-4B3E-A78B-ECB8B46104D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1EB3E07-AD64-4B3E-A78B-ECB8B46104D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

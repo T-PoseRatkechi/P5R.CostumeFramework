@@ -176,7 +176,7 @@ internal unsafe class CostumeGmdHook
         => modelId == 51
         || modelId == 52
         || (modelId >= 151 && modelId < 200)
-        || this.config.OverworldCostumes;
+        || (this.config.OverworldCostumes && modelId != 48);
 
     private int GetOutfitId(int itemId) => itemId - 0x7000;
 

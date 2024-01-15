@@ -8,10 +8,12 @@ using P5R.CostumeFramework.Characters;
 using P5R.CostumeFramework.Configuration;
 using P5R.CostumeFramework.Costumes;
 using P5R.CostumeFramework.Hooks;
+using P5R.CostumeFramework.Interfaces;
 using p5rpc.lib.interfaces;
 using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
+using Reloaded.Mod.Interfaces.Internal;
 
 namespace P5R.CostumeFramework;
 
@@ -33,7 +35,7 @@ internal unsafe class CostumeService
 
     private readonly List<IGameHook> gameHooks = new();
 
-    public CostumeService(IModLoader modLoader, IReloadedHooks hooks, Config config)
+    public CostumeService(IModV1 owner, IModLoader modLoader, IReloadedHooks hooks, Config config)
     {
         this.modLoader = modLoader;
 
@@ -56,6 +58,8 @@ internal unsafe class CostumeService
         CharacterAssetsLoader.Init(modLoader, assetSettings);
 
         var costumes = new CostumeRegistry(modLoader, config, assetSettings);
+        this.modLoader.AddOrReplaceController<ICostumeApi>(owner, costumes);
+
         this.costumeMusic = new(bgme, battleThemes, p5rLib, config, costumes);
 
         this.gameHooks.Add(new ItemNameHook(costumes));

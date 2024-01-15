@@ -1,4 +1,5 @@
 ﻿using P5R.CostumeFramework.Configuration;
+using P5R.CostumeFramework.Interfaces;
 using P5R.CostumeFramework.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
@@ -35,7 +36,7 @@ public class Mod : ModBase
 
         try
         {
-            this.costumes = new(this.modLoader, this.hooks, this.config);
+            this.costumes = new(this.owner, this.modLoader, this.hooks, this.config);
         }
         catch (Exception ex)
         {
@@ -55,6 +56,8 @@ public class Mod : ModBase
 
     #region For Exports, Serialization etc.
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    public Type[] GetTypes() => new[] { typeof(ICostumeApi) };
+
     public Mod() { }
 #pragma warning restore CS8618
     #endregion

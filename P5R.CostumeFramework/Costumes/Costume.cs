@@ -9,6 +9,7 @@ internal class Costume
     {
         "Consider checking out SCArkadia's difficulty mod,[n]P5R Reimagined to experience P5R in a new way![n]",
         "DeathChaos's mod, Custom Bonus Tweaks, adds[n]new features, outfits, and BGM as well as[n]implementing unused content![n]",
+        "Try out Ercar's AiO Costume Pack which[n]adds over 100 new outfits, some including BGM![n]",
     };
 
     private string descriptionMessage = DEFAULT_DESCRIPTION;

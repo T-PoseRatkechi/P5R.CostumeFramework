@@ -36,15 +36,20 @@ internal unsafe class ItemNameHook : IGameHook
         {
             if (this.costumes.TryGetCostume(itemId, out var costume))
             {
+                // Get name from config.
                 if (costume.Config.Name != null)
                 {
                     return StringsCache.GetStringPtr(costume.Config.Name);
                 }
 
-                if (costume.Name != null)
+                // Get name from costume object.
+                // Only for mod outfits so NAME.TBL edits work.
+                if (costume.Name != null && VirtualOutfitsSection.IsModOutfit(itemId))
                 {
                     return StringsCache.GetStringPtr(costume.Name);
                 }
+
+                return this.getItemNameHook!.OriginalFunction(itemId);
             }
 
             return this.fallbackNameStrPtr;

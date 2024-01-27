@@ -10,6 +10,14 @@ internal class GameCostumes : IReadOnlyList<Costume>
     public GameCostumes()
     {
         var characters = Enum.GetValues<Character>();
+        var akechiDarkSuit = new Costume(Character.Akechi, 0x7000 + 13)
+        {
+            IsEnabled = true,
+            Name = "Dark Suit",
+        };
+
+        this.costumes.Add(akechiDarkSuit);
+
         for (int currentSet = 0; currentSet < VirtualOutfitsSection.GAME_OUTFIT_SETS + VirtualOutfitsSection.MOD_OUTFIT_SETS; currentSet++)
         {
             foreach (var character in characters)

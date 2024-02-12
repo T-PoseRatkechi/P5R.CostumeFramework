@@ -2,7 +2,7 @@
   "ModId": "P5R.CostumeFramework",
   "ModName": "Costume Framework",
   "ModAuthor": "T-Pose Ratkechi",
-  "ModVersion": "1.0.30",
+  "ModVersion": "1.0.31",
   "ModDescription": "Streamlines and enhances outfit mods!",
   "ModDll": "P5R.CostumeFramework.dll",
   "ModIcon": "Preview.png",
@@ -12,7 +12,7 @@
   "ModNativeDll64": "",
   "Tags": [],
   "CanUnload": false,
-  "HasExports": false,
+  "HasExports": true,
   "IsLibrary": false,
   "ReleaseMetadataFileName": "P5R.CostumeFramework.ReleaseMetadata.json",
   "PluginData": {
@@ -135,7 +135,7 @@
   },
   "IsUniversalMod": false,
   "ModDependencies": [
-    "BGME.Framework",
+    "BGME.Framework.API",
     "crifs.v2.hook",
     "p5rpc.lib",
     "p5rpc.modloader",

@@ -14,6 +14,7 @@ using Reloaded.Hooks.Definitions;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
+using System.Text;
 
 namespace P5R.CostumeFramework;
 
@@ -53,6 +54,8 @@ internal unsafe class CostumeService
         {
             Library = LibraryLookup.GetLibrary("p5r")
         };
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Needed for shift_jis encoding to be available
 
         var assetSettings = new CharacterAssetsSettings(config);
         CharacterAssetsLoader.Init(modLoader, assetSettings);

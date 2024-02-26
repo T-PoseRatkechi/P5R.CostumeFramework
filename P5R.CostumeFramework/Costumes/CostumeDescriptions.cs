@@ -15,10 +15,16 @@ internal static class CostumeDescriptions
             sb.AppendLine("[f 0 5 65278][f 2 1]UNUSED[n][e]");
         }
 
-        for (int i = 0; i < costumes.Count; i++)
+        foreach (var costume in costumes)
         {
-            sb.AppendLine($"[msg Item_{i:D3}]");
-            sb.AppendLine(costumes[i].DescriptionMsg);
+            var outfitId = costume.ItemId - 0x7000;
+            if (outfitId < 16)
+            {
+                continue;
+            }
+
+            sb.AppendLine($"[msg Item_{outfitId:D3}]");
+            sb.AppendLine(costume.DescriptionMsg);
         }
 
         var descriptions = sb.ToString();

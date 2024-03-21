@@ -18,6 +18,16 @@ public class Config : Configurable<Config>
     [DefaultValue(true)]
     public bool ExtraOutfits { get; set; } = true;
 
+    [Category("Integrations")]
+    [DisplayName("BGME Framework")]
+    [DefaultValue(true)]
+    public bool Integration_BGME { get; set; } = true;
+
+    [Category("Integrations")]
+    [DisplayName("BGME Battle Themes")]
+    [DefaultValue(true)]
+    public bool Integration_BattleThemes { get; set; } = true;
+
     [Category("Settings")]
     [DisplayName("Randomize Outfits")]
     [Description("Outfits will randomize when moving between areas.")]

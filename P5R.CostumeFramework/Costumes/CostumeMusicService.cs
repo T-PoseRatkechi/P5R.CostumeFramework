@@ -15,7 +15,7 @@ internal class CostumeMusicService
     private readonly CostumeRegistry costumes;
 
     private readonly Dictionary<Character, CostumeMusic> costumeMusic = new();
-    private List<Character> currentParty = new();
+    private readonly List<Character> currentParty = new();
 
     public CostumeMusicService(
         IBgmeApi bgme,
@@ -67,8 +67,15 @@ internal class CostumeMusicService
             return;
         }
 
-        this.UpdateBgmeMusic(costume);
-        this.UpdateBattleThemeMusic(costume);
+        if (this.config.Integration_BGME)
+        {
+            this.UpdateBgmeMusic(costume);
+        }
+
+        if (this.config.Integration_BattleThemes)
+        {
+            this.UpdateBattleThemeMusic(costume);
+        }
     }
 
     private void UpdateBgmeMusic(Costume costume)

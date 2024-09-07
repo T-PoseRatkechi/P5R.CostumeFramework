@@ -38,7 +38,7 @@ internal class CharacterAssetsHook : IGameHook
     {
         scanner.Scan(
             "Costume GUI Hook",
-            "48 8D 8D ?? ?? ?? ?? E8 ?? ?? ?? ?? BA 10 00 00 00 8D 4A ?? E8 ?? ?? ?? ?? 48 8B D8 48 8B 05 ?? ?? ?? ?? 48 85 C0 74 ?? BA 50 00 00 00",
+            "48 8D 4D ?? E8 ?? ?? ?? ?? 45 33 C0 44 8B F6",
             result =>
             {
                 var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile((Character)character, AssetType.Gui), out this.setGuiWrapper);
@@ -47,7 +47,7 @@ internal class CharacterAssetsHook : IGameHook
 
         scanner.Scan(
             "Costume Cutin Hook",
-            "E8 ?? ?? ?? ?? 48 8D 4C 24 ?? E8 ?? ?? ?? ?? 48 89 47 ?? C7 07 01 00 00 00",
+            "E8 ?? ?? ?? ?? 45 33 C0 48 8D 4C 24 ?? 41 8D 50 ?? E8 ?? ?? ?? ?? 48 89 47 ??",
             result =>
             {
                 var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile((Character)character, AssetType.Cutin), out this.setCutinWrapper);
@@ -56,7 +56,7 @@ internal class CharacterAssetsHook : IGameHook
 
         scanner.Scan(
             "Futaba Skill Hook",
-            "E8 ?? ?? ?? ?? F3 44 0F 10 0D ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? 0F 57 C0",
+            "E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? 48 89 85 ?? ?? ?? ?? 48 89 4D ?? 0F 57 C0",
             result =>
             {
                 var patch = AssembleRedirectPatch(hooks, character => this.RedirectCharAssetFile(Character.Futaba, AssetType.Futaba_Skill), out this.setFutabaSkillWrapper, Register.rcx);

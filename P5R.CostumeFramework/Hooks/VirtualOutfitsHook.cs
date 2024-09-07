@@ -22,7 +22,7 @@ internal unsafe class VirtualOutfitsHook
 
         scanner.Scan(
             "Use Virtual Outfit Section",
-            "8B 37 48 83 C7 04 0F CE 48 63 EE 48 8B CD E8 ?? ?? ?? ?? 4C 8B F0 48 8B 05 ?? ?? ?? ?? 48 85 C0 74 ?? 48 8B D5 49 8B CE FF D0 48 8B CD 4C 89 35 ?? ?? ?? ?? 48 C1 E9 05",
+            "8B 45 ?? 48 83 C3 04 0F C8 48 63 C8 89 45 ?? E8 ?? ?? ?? ?? 4C 63 45 ?? 48 8B D3 49 8B C8 48 89 05 ?? ?? ?? ?? 48 C1 E9 05",
             result =>
             {
                 var patch = new string[]

@@ -24,7 +24,7 @@ internal unsafe class ItemNameHook : IGameHook
 
     public void Initialize(IStartupScanner scanner, IReloadedHooks hooks)
     {
-        scanner.Scan("Get Item Name Function", "B8 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC 4C 8B DC 48 83 EC 78", result =>
+        scanner.Scan("Get Item Name Function", "bb 41 38 c9 8c cc cc cc cc cc cc cc cc cc cc", result =>
         {
             this.getItemNameHook = hooks.CreateHook<GetItemNameFunction>(this.GetItemName, result + 15).Activate();
         });

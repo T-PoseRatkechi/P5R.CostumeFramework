@@ -47,7 +47,7 @@ internal class FieldChangeHook
                 Utilities.PopCallerRegisters,
         };
 
-        scanner.Scan("Field Change (FBN) Hook", "E8 ?? ?? ?? ?? 49 89 86 ?? ?? ?? ?? E8 ?? ?? ?? ?? 45 0F B7 0E", result =>
+        scanner.Scan("Field Change (FBN) Hook", "E8 ?? ?? ?? ?? 48 89 87 ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B7 0F", result =>
         {
             this.fieldChangedHook = hooks.CreateAsmHook(patch, result, AsmHookBehaviour.ExecuteFirst).Activate();
         });

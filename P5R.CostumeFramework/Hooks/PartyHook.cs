@@ -24,7 +24,7 @@ internal unsafe class PartyHook : IGameHook
 
     public void Initialize(IStartupScanner scanner, IReloadedHooks hooks)
     {
-        scanner.Scan("Update from Menu Function", "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 40 45 33 D2", result =>
+        scanner.Scan("Update from Menu Function", "48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 40 33 F6", result =>
         {
             this.updateMenuHook = hooks.CreateHook<UpdateFromMenu>(this.UpdateFromMenuImpl, result).Activate();
         });

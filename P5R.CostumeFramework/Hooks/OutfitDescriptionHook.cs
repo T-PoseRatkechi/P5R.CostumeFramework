@@ -46,7 +46,7 @@ internal unsafe class OutfitDescriptionHook : IGameHook
 
     public void Initialize(IStartupScanner scanner, IReloadedHooks hooks)
     {
-        scanner.Scan("Load Game BMD Hook", "E8 ?? ?? ?? ?? 4C 8B 35 ?? ?? ?? ?? 48 63 CF", result =>
+        scanner.Scan("Load Game BMD Hook", "E8 ?? ?? ?? ?? 4C 8B 3D ?? ?? ?? ?? 8B C8", result =>
         {
             var patch = new string[]
             {

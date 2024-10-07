@@ -14,7 +14,7 @@ namespace P5R.CostumeFramework.Hooks;
 internal unsafe class CostumeGmdHook
 {
     [Function(CallingConventions.Microsoft)]
-    private delegate void LoadAssetHook(nint param1, int modelId, nint gmdId, nint param4, nint param5);
+    private delegate void LoadAssetHook(nint param1, uint modelId, uint gmdId, uint param4, int param5);
     private IHook<LoadAssetHook>? loadAssetHook;
     private MultiAsmHook? loadAssetAsmHooks;
 
@@ -80,11 +80,11 @@ internal unsafe class CostumeGmdHook
         });
     }
 
-    private void LoadAssetImpl(nint param1, int modelId, nint gmdId, nint param4, nint param5)
+    private void LoadAssetImpl(nint param1, uint modelId, uint gmdId, uint param4, int param5)
     {
-        if (param5 == 1 || param5 == 4)
+        if (param5 == 1 || param5 == 2 || param5 == 4)
         {
-            this.RedirectCostumeGmd(param1, (Character)modelId, gmdId, param4, param5);
+            if ( 10 >= modelId ) this.RedirectCostumeGmd(param1, (Character)modelId, gmdId, param4, param5);
         }
         else if (param5 == 14)
         {
@@ -99,7 +99,7 @@ internal unsafe class CostumeGmdHook
         this.ClearAssetRedirect();
     }
 
-    private void RedirectWeaponGmd(nint param1, int modelId, WeaponType weaponType, nint param4, nint param5)
+    private void RedirectWeaponGmd(nint param1, uint modelId, WeaponType weaponType, uint param4, int param5)
     {
         var character = (Character)((modelId / 100 % 10) + 1);
         var outfitItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
@@ -134,7 +134,7 @@ internal unsafe class CostumeGmdHook
         }
     }
 
-    private void RedirectCostumeGmd(nint param1, Character character, nint gmdId, nint param4, nint param5)
+    private void RedirectCostumeGmd(nint param1, Character character, uint gmdId, uint param4, int param5)
     {
         var outfitItemId = this.p5rLib.GET_EQUIP(character, EquipSlot.Costume);
         var outfitId = this.GetOutfitId(outfitItemId);
@@ -155,8 +155,9 @@ internal unsafe class CostumeGmdHook
             && costume.GmdBindPath != null)
         {
             this.SetAssetRedirect(costume.GmdBindPath);
-            Log.Debug($"{character}: redirected {outfitSet} GMD to {costume.GmdBindPath}");
+            Log.Verbose($"{character}: redirected {outfitSet} GMD to {costume.GmdBindPath}");
         }
+        else Log.Verbose($"No redirect match for {character} in {outfitSet}");
     }
 
     private void SetAssetRedirect(string redirectPath)
